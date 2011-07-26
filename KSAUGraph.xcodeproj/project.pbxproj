@@ -16,6 +16,9 @@
 		91C5C7A213DEF908002004A8 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 91C5C7A013DEF908002004A8 /* MainWindow.xib */; };
 		91C5C7A513DEF908002004A8 /* KSAUGraphViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 91C5C7A413DEF908002004A8 /* KSAUGraphViewController.m */; };
 		91C5C7A813DEF908002004A8 /* KSAUGraphViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 91C5C7A613DEF908002004A8 /* KSAUGraphViewController.xib */; };
+		91C5C7B013DEF9EE002004A8 /* KSAUGraphManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 91C5C7AF13DEF9EE002004A8 /* KSAUGraphManager.m */; };
+		91C5C7B713DEFD00002004A8 /* iPhoneCoreAudio.m in Sources */ = {isa = PBXBuildFile; fileRef = 91C5C7B613DEFD00002004A8 /* iPhoneCoreAudio.m */; };
+		91C5C7B913DF036D002004A8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91C5C7B813DF036D002004A8 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,16 +26,21 @@
 		91C5C78E13DEF908002004A8 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		91C5C79013DEF908002004A8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		91C5C79213DEF908002004A8 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		91C5C79613DEF908002004A8 /* KSAUGraph-Info.plist */ = {isa = PBXFileReference; path = "KSAUGraph-Info.plist"; sourceTree = "<group>"; };
+		91C5C79613DEF908002004A8 /* KSAUGraph-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "KSAUGraph-Info.plist"; sourceTree = "<group>"; };
 		91C5C79813DEF908002004A8 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		91C5C79A13DEF908002004A8 /* KSAUGraph-Prefix.pch */ = {isa = PBXFileReference; path = "KSAUGraph-Prefix.pch"; sourceTree = "<group>"; };
+		91C5C79A13DEF908002004A8 /* KSAUGraph-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "KSAUGraph-Prefix.pch"; sourceTree = "<group>"; };
 		91C5C79B13DEF908002004A8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		91C5C79D13DEF908002004A8 /* KSAUGraphAppDelegate.h */ = {isa = PBXFileReference; path = KSAUGraphAppDelegate.h; sourceTree = "<group>"; };
+		91C5C79D13DEF908002004A8 /* KSAUGraphAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KSAUGraphAppDelegate.h; sourceTree = "<group>"; };
 		91C5C79E13DEF908002004A8 /* KSAUGraphAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KSAUGraphAppDelegate.m; sourceTree = "<group>"; };
 		91C5C7A113DEF908002004A8 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainWindow.xib; sourceTree = "<group>"; };
-		91C5C7A313DEF908002004A8 /* KSAUGraphViewController.h */ = {isa = PBXFileReference; path = KSAUGraphViewController.h; sourceTree = "<group>"; };
+		91C5C7A313DEF908002004A8 /* KSAUGraphViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KSAUGraphViewController.h; sourceTree = "<group>"; };
 		91C5C7A413DEF908002004A8 /* KSAUGraphViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KSAUGraphViewController.m; sourceTree = "<group>"; };
 		91C5C7A713DEF908002004A8 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/KSAUGraphViewController.xib; sourceTree = "<group>"; };
+		91C5C7AE13DEF9EE002004A8 /* KSAUGraphManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KSAUGraphManager.h; path = KSAUGraph/KSAUGraphManager.h; sourceTree = "<group>"; };
+		91C5C7AF13DEF9EE002004A8 /* KSAUGraphManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KSAUGraphManager.m; path = KSAUGraph/KSAUGraphManager.m; sourceTree = "<group>"; };
+		91C5C7B513DEFD00002004A8 /* iPhoneCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = iPhoneCoreAudio.h; path = KSAUGraph/iPhoneCoreAudio.h; sourceTree = "<group>"; };
+		91C5C7B613DEFD00002004A8 /* iPhoneCoreAudio.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = iPhoneCoreAudio.m; path = KSAUGraph/iPhoneCoreAudio.m; sourceTree = "<group>"; };
+		91C5C7B813DF036D002004A8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91C5C7B913DF036D002004A8 /* AudioToolbox.framework in Frameworks */,
 				91C5C78F13DEF908002004A8 /* UIKit.framework in Frameworks */,
 				91C5C79113DEF908002004A8 /* Foundation.framework in Frameworks */,
 				91C5C79313DEF908002004A8 /* CoreGraphics.framework in Frameworks */,
@@ -52,6 +61,7 @@
 		91C5C77F13DEF908002004A8 = {
 			isa = PBXGroup;
 			children = (
+				91C5C7B813DF036D002004A8 /* AudioToolbox.framework */,
 				91C5C79413DEF908002004A8 /* KSAUGraph */,
 				91C5C78D13DEF908002004A8 /* Frameworks */,
 				91C5C78B13DEF908002004A8 /* Products */,
@@ -86,6 +96,7 @@
 				91C5C7A413DEF908002004A8 /* KSAUGraphViewController.m */,
 				91C5C7A613DEF908002004A8 /* KSAUGraphViewController.xib */,
 				91C5C79513DEF908002004A8 /* Supporting Files */,
+				91C5C7B113DEFB8D002004A8 /* lib */,
 			);
 			path = KSAUGraph;
 			sourceTree = "<group>";
@@ -99,6 +110,17 @@
 				91C5C79B13DEF908002004A8 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		91C5C7B113DEFB8D002004A8 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				91C5C7AE13DEF9EE002004A8 /* KSAUGraphManager.h */,
+				91C5C7AF13DEF9EE002004A8 /* KSAUGraphManager.m */,
+				91C5C7B513DEFD00002004A8 /* iPhoneCoreAudio.h */,
+				91C5C7B613DEFD00002004A8 /* iPhoneCoreAudio.m */,
+			);
+			name = lib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -167,6 +189,8 @@
 				91C5C79C13DEF908002004A8 /* main.m in Sources */,
 				91C5C79F13DEF908002004A8 /* KSAUGraphAppDelegate.m in Sources */,
 				91C5C7A513DEF908002004A8 /* KSAUGraphViewController.m in Sources */,
+				91C5C7B013DEF9EE002004A8 /* KSAUGraphManager.m in Sources */,
+				91C5C7B713DEFD00002004A8 /* iPhoneCoreAudio.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
