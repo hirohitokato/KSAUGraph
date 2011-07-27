@@ -12,15 +12,16 @@
 #import "iPhoneCoreAudio.h"
 
 @interface KSAUGraphManager : NSObject {
-    BOOL isPlaying;
-    AUGraph mAuGraph;
-    AudioUnit multiChannelMixerAudioUnit;
+    BOOL isPlaying_;
+    AUGraph auGraph_;
+    AudioUnit multiChannelMixerAudioUnit_;
 }
 
 + (id)sharedInstance;
 
 // オーディオ出力の準備
-- (void)prepare;
+// arrayには各チャネルを定義したクラスを入れておく（最大８個）
+- (void)prepareWithChannels:(NSArray *)array;
 
 // 動作開始/停止
 -(void)play;

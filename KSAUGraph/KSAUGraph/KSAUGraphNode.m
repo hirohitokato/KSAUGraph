@@ -7,8 +7,11 @@
 //
 
 #import "KSAUGraphNode.h"
-
+#import "KSAUGraphManager.h"
 
 @implementation KSAUGraphNode
+@synthesize manager = manager_;
+@synthesize channel = channel_;
+
 
 @end

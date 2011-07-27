@@ -7,8 +7,10 @@
 //
 
 #import "KSAUGraphManager.h"
+#import "KSAUGraphNode.h"
 
 @interface KSAUGraphManager ()
+#pragma mark Private methods
 // オーディオリソースの解放
 - (void)unload;
 
@@ -18,11 +20,48 @@
 static id _instance = nil;
 static BOOL _willDelete = NO;
 
-- (void)prepare {	
+- (id)init {
+    self = [super init];
+    if (self) {
+        isPlaying_ = NO;
+        auGraph_ = NULL;
+        multiChannelMixerAudioUnit_ = NULL;
+    }
+    return self;
+}
+
+static OSStatus renderCallback(void*                       inRefCon,
+                               AudioUnitRenderActionFlags* ioActionFlags,
+                               const AudioTimeStamp*       inTimeStamp,
+                               UInt32                      inBusNumber,
+                               UInt32                      inNumberFrames,
+                               AudioBufferList*            ioData
+                               ){
+    KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
+    KSAUGraphManager *manager = node.manager;
+    
+    // 再生が始まるまではゼロフィル
+    // waitFramesが0ならば
+    //   自分が鳴らすべきかどうかを
+    //   nodeのisPlayingがNOで、waitFramesが0より大きければ、ゼロフィル＆waitFramesをデクリメント
+    //   nodeのisPlayingがYESで、waitFramesが0より大きければ、nodeにフィルしてもらう＆waitFramesをデクリメント
+    // 始まったら呼ぶ
+    // （残りのバッファサイズが戻ってくる）
+    // バッファサイズが非ゼロなら、残りをゼロフィル
+    return noErr;
+}
+
+- (void)prepareWithChannels:(NSArray *)array {
+    // 8チャンネル以下
+    if ([array count] > 8) {
+        NSLog(@"Array count(%d) must be within 8.", [array count]);
+        return;
+    }
+
     //AUGraphをインスタンス化
-    NewAUGraph(&mAuGraph);
-	AUGraphOpen(mAuGraph);
-	
+    NewAUGraph(&auGraph_);
+	AUGraphOpen(auGraph_);
+
     //Remote IOのAudioComponentDescriptionを用意する
     AudioComponentDescription cd;
     cd.componentType = kAudioUnitType_Output;
@@ -33,7 +72,7 @@ static BOOL _willDelete = NO;
     
     //AUGraphにRemote IOのノードを追加する
     AUNode remoteIONode;
-    AUGraphAddNode(mAuGraph, &cd, &remoteIONode);
+    AUGraphAddNode(auGraph_, &cd, &remoteIONode);
     
     //MultiChannelMixerのAudioComponentDescriptionを用意する
     cd.componentType = kAudioUnitType_Mixer;
@@ -41,28 +80,32 @@ static BOOL _willDelete = NO;
     
     //AUGraphにMultiChannelMixerのノードを追加する
     AUNode multiChannelMixerNode;
-    AUGraphAddNode(mAuGraph, &cd, &multiChannelMixerNode);
+    AUGraphAddNode(auGraph_, &cd, &multiChannelMixerNode);
     
     
-    //2つのインプットバスにコールバック関数を登録
-    UInt32 numOfBus = 2;
-    for(int i = 0; i < numOfBus; i++){
+    // インプットバスにコールバック関数を登録
+    // 引数には配列の各要素を渡す
+    int inputCount = [array count];
+    for(int i = 0; i < inputCount; i++){
+        KSAUGraphNode *node = [array objectAtIndex:i];
+        node.manager = self;
+        node.channel = i;
         AURenderCallbackStruct callbackStruct;
         callbackStruct.inputProc = renderCallback;
-        callbackStruct.inputProcRefCon = &sineWaveDef[i];      
+        callbackStruct.inputProcRefCon = node;      
         //コールバック関数の設定
-        AUGraphSetNodeInputCallback(mAuGraph,
+        AUGraphSetNodeInputCallback(auGraph_,
                                     multiChannelMixerNode, 
                                     i, //バスナンバー
                                     &callbackStruct);
     }
     
     AudioUnit remoteIOAudioUnit;
-    AUGraphNodeInfo(mAuGraph, remoteIONode, 
+    AUGraphNodeInfo(auGraph_, remoteIONode, 
                     NULL, &remoteIOAudioUnit);
     
-    AUGraphNodeInfo(mAuGraph, multiChannelMixerNode,
-                    NULL, &multiChannelMixerAudioUnit);
+    AUGraphNodeInfo(auGraph_, multiChannelMixerNode,
+                    NULL, &multiChannelMixerAudioUnit_);
 
     //Audio Unit正準形
 	AudioStreamBasicDescription audioFormat = AUCanonicalASBD(44100.0, 2);
@@ -75,7 +118,7 @@ static BOOL _willDelete = NO;
                          &audioFormat,
                          sizeof(audioFormat));
     
-    AudioUnitSetProperty(multiChannelMixerAudioUnit,
+    AudioUnitSetProperty(multiChannelMixerAudioUnit_,
                          kAudioUnitProperty_StreamFormat,
                          kAudioUnitScope_Input,
                          0,
@@ -83,7 +126,7 @@ static BOOL _willDelete = NO;
                          sizeof(audioFormat));
     
     //multiChannelMixerNode(バス:0)からremoteIONode(バス:0)に繫ぐ
-    AUGraphConnectNodeInput(mAuGraph, 
+    AUGraphConnectNodeInput(auGraph_, 
                             multiChannelMixerNode, //このノードの
                             0,//このバス(output)から
                             remoteIONode, //このノードの
@@ -91,32 +134,34 @@ static BOOL _willDelete = NO;
                             );
     
     //準備が整ったらAUGraphを初期化
-    AUGraphInitialize(mAuGraph);
+    AUGraphInitialize(auGraph_);
 }
 
 - (void)unload {
-    if(isPlaying)[self stop];
-    AUGraphUninitialize(mAuGraph);
-    AUGraphClose(mAuGraph);
-    DisposeAUGraph(mAuGraph);
+    if(isPlaying_)[self stop];
+    AUGraphUninitialize(auGraph_);
+    AUGraphClose(auGraph_);
+    DisposeAUGraph(auGraph_);
+    auGraph_ = NULL;
+    multiChannelMixerAudioUnit_ = NULL;
 }
 
 #pragma mark -
 -(void)play {
-    if(!isPlaying){
-        AUGraphStart(mAuGraph);
+    if(!isPlaying_){
+        AUGraphStart(auGraph_);
     }
-    isPlaying = YES;
+    isPlaying_ = YES;
 }
 
 -(void)stop {
-    if(isPlaying)AUGraphStop(mAuGraph);
-    isPlaying = NO;
+    if(isPlaying_)AUGraphStop(auGraph_);
+    isPlaying_ = NO;
 }
 
 - (Float32)volume {
     Float32 volume;
-    AudioUnitGetParameter(multiChannelMixerAudioUnit,
+    AudioUnitGetParameter(multiChannelMixerAudioUnit_,
                           kMultiChannelMixerParam_Volume,
                           kAudioUnitScope_Output,
                           0,
@@ -129,7 +174,7 @@ static BOOL _willDelete = NO;
         return;
     }
     AudioUnitParameterValue v = (AudioUnitParameterValue)volume;
-    AudioUnitSetParameter(multiChannelMixerAudioUnit,
+    AudioUnitSetParameter(multiChannelMixerAudioUnit_,
                           kMultiChannelMixerParam_Volume,
                           kAudioUnitScope_Output, //アウトプット
                           0, //バスナンバー
