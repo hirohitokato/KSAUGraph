@@ -52,11 +52,12 @@ static OSStatus renderCallback(void*                       inRefCon,
 }
 
 - (void)prepareWithChannels:(NSArray *)array {
-    // 8チャンネル以下
+    // 8チャンネル以下であること
     if ([array count] > 8) {
         NSLog(@"Array count(%d) must be within 8.", [array count]);
         return;
     }
+    channels_ = [array retain];
 
     //AUGraphをインスタンス化
     NewAUGraph(&auGraph_);
@@ -93,7 +94,7 @@ static OSStatus renderCallback(void*                       inRefCon,
         AURenderCallbackStruct callbackStruct;
         callbackStruct.inputProc = renderCallback;
         callbackStruct.inputProcRefCon = node;      
-        //コールバック関数の設定
+        // ミキサーの各バスにコールバック関数を設定
         AUGraphSetNodeInputCallback(auGraph_,
                                     multiChannelMixerNode, 
                                     i, //バスナンバー
@@ -144,6 +145,7 @@ static OSStatus renderCallback(void*                       inRefCon,
     DisposeAUGraph(auGraph_);
     auGraph_ = NULL;
     multiChannelMixerAudioUnit_ = NULL;
+    [channels_ release]; channels_ = nil;
 }
 
 #pragma mark -

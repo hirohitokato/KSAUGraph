@@ -15,6 +15,8 @@
     BOOL isPlaying_;
     AUGraph auGraph_;
     AudioUnit multiChannelMixerAudioUnit_;
+
+    NSArray *channels_;
 }
 
 + (id)sharedInstance;
