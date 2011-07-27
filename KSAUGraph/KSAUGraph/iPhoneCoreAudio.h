@@ -14,4 +14,6 @@ extern AudioStreamBasicDescription AUCanonicalASBD(Float64 sampleRate,
 extern AudioStreamBasicDescription CanonicalASBD(Float64 sampleRate, 
                                                  UInt32 channel);
 extern void printASBD(AudioStreamBasicDescription audioFormat);
+
+extern void KSAUCheckError(OSStatus err,const char *message);
 #endif  //  __iPhoneCoreAudio_h__
