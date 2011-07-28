@@ -51,6 +51,9 @@
                          outRight:(AudioUnitSampleType *)outR;
 
 // 指定したファイルで初期化（インプリ側の処理）
--(id)initWithContentsOfURL:(NSURL*)url;
+- (id)initWithContentsOfURL:(NSURL*)url;
+
+// 再生の準備
+- (void)preparePlay;
 
 @end

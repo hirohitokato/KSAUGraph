@@ -31,12 +31,20 @@ typedef struct {
 
     NSArray *channels_;
 
-    KSAUGraphNextTriggerInfo currentInfo;
-    KSAUGraphNextTriggerInfo nextInfo;
+    UInt64  currentTriggerFrame_;
+    int     currentChannel_;
+    UInt64  nextTriggerFrame_;
+    int     nextChannel_;
+    int     count_;
     id<KSAUGraphManagerDelegate> delegate_;
 }
-@property (nonatomic)Float32 volume;
+@property (assign, nonatomic)Float32 volume;
 @property (assign, nonatomic)id<KSAUGraphManagerDelegate> delegate;
+
+@property (assign, nonatomic)UInt64  currentTriggerFrame;
+@property (assign, nonatomic)int     currentChannel;
+@property (assign, nonatomic)UInt64  nextTriggerFrame;
+@property (assign, nonatomic)int     nextChannel;
 
 // シングルトンオブジェクトの取得
 + (id)sharedInstance;

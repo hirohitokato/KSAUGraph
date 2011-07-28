@@ -17,6 +17,7 @@
     [maxValueLabel release];
     [minValueLabel release];
     [interval release];
+    [currentValueLabel release];
     [super dealloc];
 }
 
@@ -36,6 +37,7 @@
     [super viewDidLoad];
     minValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.minimumValue];
     maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.maximumValue];
+    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.value];
 
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     mgr.delegate = self;
@@ -57,6 +59,8 @@
     minValueLabel = nil;
     [interval release];
     interval = nil;
+    [currentValueLabel release];
+    currentValueLabel = nil;
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -91,5 +95,6 @@
 }
 
 - (IBAction)intervalChanged:(id)sender {
+    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.value];
 }
 @end

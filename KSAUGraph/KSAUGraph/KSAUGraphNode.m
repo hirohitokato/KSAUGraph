@@ -102,10 +102,16 @@
     
     free(audioBufferList);
     currentPos_ = 0;
+    isPlaying_ = NO;
 }
 
 #pragma mark -
 #pragma mark Rendering
+- (void)preparePlay {
+    currentPos_ = 0;
+    isPlaying_ = YES;
+}
+
 - (UInt32)renderCallbackWithFlags:(AudioUnitRenderActionFlags *)ioActionFlags
                         timeStamp:(const AudioTimeStamp *)inTimeStamp
                         busNumber:(UInt32)inBusNumber

@@ -39,6 +39,24 @@ AudioStreamBasicDescription CanonicalASBD(Float64 sampleRate,
     return audioFormat;
 }
 
+void AudioSessionSetFrameBufferSize(Float64 sampleRate,
+                                    int frameBufferSize) {
+    AudioSessionInitialize(NULL, NULL, NULL, NULL);
+    Float32 duration = frameBufferSize / sampleRate;
+    UInt32 size = sizeof(Float32);
+    AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration,
+                            size, &duration);
+    if (1) { // debug
+        Float32 newDuration;
+        size = sizeof(Float32);
+        AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration,
+                                &size, &newDuration);
+        NSLog(@"New buffer size(%f) <== requested size(%d)",
+              sampleRate*newDuration, frameBufferSize);
+    }
+    AudioSessionSetActive(TRUE);
+}
+
 void printASBD(AudioStreamBasicDescription audioFormat){
     UInt32 mFormatFlags = audioFormat.mFormatFlags;
     NSMutableArray *flags = [NSMutableArray array];
@@ -83,7 +101,7 @@ void KSAUCheckError(OSStatus err,const char *message){
         char property[5];
         *(UInt32 *)property = CFSwapInt32HostToBig(err);
         property[4] = '\0';
-        NSLog(@"%s = %-4.4s, %d",message, property,err);
+        NSLog(@"%s = %-4.4s, %ld",message, property,err);
         exit(1);
     }
 }
