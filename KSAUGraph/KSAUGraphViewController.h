@@ -7,9 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "KSAUGraphManager.h"
 
-@interface KSAUGraphViewController : UIViewController {
+@interface KSAUGraphViewController : UIViewController <KSAUGraphManagerDelegate>{
     
 }
+- (IBAction)play:(id)sender;
+- (IBAction)stop:(id)sender;
 
 @end

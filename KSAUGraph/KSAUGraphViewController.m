@@ -7,6 +7,8 @@
 //
 
 #import "KSAUGraphViewController.h"
+#import "KSAUGraphManager.h"
+#import "KSAUGraphNode.h"
 
 @implementation KSAUGraphViewController
 
@@ -25,13 +27,22 @@
 
 #pragma mark - View lifecycle
 
-/*
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+    mgr.delegate = self;
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"analog_rest" ofType:@"caf"];
+	NSURL *fileURL = [NSURL fileURLWithPath:path];
+    KSAUGraphNode *node0 = [[[KSAUGraphNode alloc] initWithContentsOfURL:fileURL] autorelease];
+    path = [[NSBundle mainBundle] pathForResource:@"real_tock" ofType:@"caf"];
+	fileURL = [NSURL fileURLWithPath:path];
+    KSAUGraphNode *node1 = [[[KSAUGraphNode alloc] initWithContentsOfURL:fileURL] autorelease];
+
+    [mgr prepareWithChannels:[NSArray arrayWithObjects:node0, node1, nil]];
 }
-*/
 
 - (void)viewDidUnload
 {
@@ -46,4 +57,23 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
+- (KSAUGraphNextTriggerInfo)nextTriggerInfo:(KSAUGraphManager *)audioManager {
+    static int nextChannel = 1;
+    nextChannel = nextChannel==1?0:1;
+    KSAUGraphNextTriggerInfo info;
+    info.channel = nextChannel;
+    info.interval = 1.0f;
+    return info;
+}
+- (IBAction)play:(id)sender {
+    KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+    NSLog(@"Start playing.");
+    [mgr play];
+}
+
+- (IBAction)stop:(id)sender {
+    KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+    NSLog(@"Stop playing.");
+    [mgr stop];
+}
 @end

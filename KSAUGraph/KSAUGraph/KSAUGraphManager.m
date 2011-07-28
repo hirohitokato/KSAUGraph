@@ -13,10 +13,12 @@
 #pragma mark Private methods
 // オーディオリソースの解放
 - (void)unload;
-
+// 次のトリガーフレームを取得
+- (BOOL)nextTriggerFrame:(UInt64 *)nextFrame current:(UInt64)currentFrame;
 @end
 
 @implementation KSAUGraphManager
+@synthesize delegate=delegate_;
 static id _instance = nil;
 static BOOL _willDelete = NO;
 
@@ -26,6 +28,7 @@ static BOOL _willDelete = NO;
         isPlaying_ = NO;
         auGraph_ = NULL;
         multiChannelMixerAudioUnit_ = NULL;
+        delegate_ = nil;
     }
     return self;
 }
@@ -39,22 +42,57 @@ static OSStatus renderCallback(void*                       inRefCon,
                                ){
     KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
     KSAUGraphManager *manager = node.manager;
-    
-    // 再生が始まるまではゼロフィル
-    // waitFramesが0ならば
-    //   自分が鳴らすべきかどうかを
-    //   nodeのisPlayingがNOで、waitFramesが0より大きければ、ゼロフィル＆waitFramesをデクリメント
-    //   nodeのisPlayingがYESで、waitFramesが0より大きければ、nodeにフィルしてもらう＆waitFramesをデクリメント
-    // 始まったら呼ぶ
-    // （残りのバッファサイズが戻ってくる）
-    // バッファサイズが非ゼロなら、残りをゼロフィル
+
+    AudioUnitSampleType *outL = ioData->mBuffers[0].mData;
+    AudioUnitSampleType *outR = ioData->mBuffers[1].mData;
+
+    UInt64 targetFrame = 2048+node.cumulativeFrames;
+    UInt32 bufferRemains = inNumberFrames;
+    do {
+        // フィルする単位を決定（inNumberFramesすべてか、次のトリガーフレームまでか）
+        UInt32 nextFrame = MIN(targetFrame-node.cumulativeFrames, bufferRemains);
+
+        // nextFrameまでフィルしてもらう
+        [node renderCallbackWithFlags:ioActionFlags
+                            timeStamp:inTimeStamp
+                            busNumber:inBusNumber
+                       inNumberFrames:nextFrame
+                              outLeft:outL
+                             outRight:outR];
+        //フィルした量で残りの書き込む量と、書き込み位置(L/R)を更新
+        bufferRemains -= nextFrame;
+        outL += nextFrame;
+        outR += nextFrame;
+
+        // 次のトリガーフレームに到達？
+        if (targetFrame == node.cumulativeFrames) {
+            // その次のトリガーフレームを取得
+            // targetFrame = [manager getNext
+            // nodeは再生対象？
+            //     再生準備
+            //     node.currentFrame = 0;
+            //     node.isPlaying = YES;
+        } else if (targetFrame < node.cumulativeFrames) {
+            // これはおかしい
+            NSLog(@"targetFrame(%llu) < node.cumulativeFrames(%llu)",targetFrame,node.cumulativeFrames);
+        }
+    } while(bufferRemains > 0);
+
     return noErr;
+}
+
+- (BOOL)nextTriggerFrame:(UInt64 *)nextFrame current:(UInt64)currentFrame {
+    return NO;
 }
 
 - (void)prepareWithChannels:(NSArray *)array {
     // 8チャンネル以下であること
     if ([array count] > 8) {
         NSLog(@"Array count(%d) must be within 8.", [array count]);
+        return;
+    }
+    if (delegate_==nil) {
+        NSLog(@"Delegate property must not be nil.");
         return;
     }
     channels_ = [array retain];
@@ -108,23 +146,14 @@ static OSStatus renderCallback(void*                       inRefCon,
     AUGraphNodeInfo(auGraph_, multiChannelMixerNode,
                     NULL, &multiChannelMixerAudioUnit_);
 
-    //Audio Unit正準形
+    //それぞれのAudio UnitにASBD(Audio Unit正準形)を設定する
 	AudioStreamBasicDescription audioFormat = AUCanonicalASBD(44100.0, 2);
-    
-    //それぞれのAudio UnitにASBDを設定する
     AudioUnitSetProperty(remoteIOAudioUnit,
-                         kAudioUnitProperty_StreamFormat,
-                         kAudioUnitScope_Input,
-                         0,
-                         &audioFormat,
-                         sizeof(audioFormat));
-    
+                         kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
+                         &audioFormat, sizeof(audioFormat));
     AudioUnitSetProperty(multiChannelMixerAudioUnit_,
-                         kAudioUnitProperty_StreamFormat,
-                         kAudioUnitScope_Input,
-                         0,
-                         &audioFormat,
-                         sizeof(audioFormat));
+                         kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
+                         &audioFormat, sizeof(audioFormat));
     
     //multiChannelMixerNode(バス:0)からremoteIONode(バス:0)に繫ぐ
     AUGraphConnectNodeInput(auGraph_, 
@@ -151,13 +180,22 @@ static OSStatus renderCallback(void*                       inRefCon,
 #pragma mark -
 -(void)play {
     if(!isPlaying_){
+        for (KSAUGraphNode *node in channels_) {
+            node.currentFrame = 0;
+            node.cumulativeFrames = 0;
+            node.isPlaying = YES;
+        }
         AUGraphStart(auGraph_);
+    } else {
+        NSLog(@"Warning: play method is called though now is playing.");
     }
     isPlaying_ = YES;
 }
 
 -(void)stop {
-    if(isPlaying_)AUGraphStop(auGraph_);
+    if(isPlaying_) {
+        AUGraphStop(auGraph_);
+    }
     isPlaying_ = NO;
 }
 
@@ -179,8 +217,8 @@ static OSStatus renderCallback(void*                       inRefCon,
     AudioUnitSetParameter(multiChannelMixerAudioUnit_,
                           kMultiChannelMixerParam_Volume,
                           kAudioUnitScope_Output, //アウトプット
-                          0, //バスナンバー
-                          v, 
+                          0, // バスナンバー
+                          v, // ボリューム
                           0);
 }
 
