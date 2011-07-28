@@ -14,6 +14,9 @@
 
 - (void)dealloc
 {
+    [maxValueLabel release];
+    [minValueLabel release];
+    [interval release];
     [super dealloc];
 }
 
@@ -31,7 +34,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+    minValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.minimumValue];
+    maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.maximumValue];
+
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     mgr.delegate = self;
     NSString *path = [[NSBundle mainBundle] pathForResource:@"analog_rest" ofType:@"caf"];
@@ -46,6 +51,12 @@
 
 - (void)viewDidUnload
 {
+    [maxValueLabel release];
+    maxValueLabel = nil;
+    [minValueLabel release];
+    minValueLabel = nil;
+    [interval release];
+    interval = nil;
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -59,10 +70,12 @@
 
 - (KSAUGraphNextTriggerInfo)nextTriggerInfo:(KSAUGraphManager *)audioManager {
     static int nextChannel = 1;
-    nextChannel = nextChannel==1?0:1;
+    nextChannel = (nextChannel==1)?0:1;
+
     KSAUGraphNextTriggerInfo info;
     info.channel = nextChannel;
-    info.interval = 1.0f;
+    info.interval = [interval value];
+
     return info;
 }
 - (IBAction)play:(id)sender {
@@ -75,5 +88,8 @@
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     NSLog(@"Stop playing.");
     [mgr stop];
+}
+
+- (IBAction)intervalChanged:(id)sender {
 }
 @end

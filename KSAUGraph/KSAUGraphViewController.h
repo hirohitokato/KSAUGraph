@@ -11,8 +11,12 @@
 
 @interface KSAUGraphViewController : UIViewController <KSAUGraphManagerDelegate>{
     
+    IBOutlet UILabel *minValueLabel;
+    IBOutlet UILabel *maxValueLabel;
+    IBOutlet UISlider *interval;
 }
 - (IBAction)play:(id)sender;
 - (IBAction)stop:(id)sender;
+- (IBAction)intervalChanged:(id)sender;
 
 @end
