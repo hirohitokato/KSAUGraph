@@ -75,7 +75,6 @@
 - (KSAUGraphNextTriggerInfo)nextTriggerInfo:(KSAUGraphManager *)audioManager {
     static int nextChannel = 1;
     nextChannel = (nextChannel==1)?0:1;
-    NSLog(@"next: {%i, %f}", nextChannel, [intervalSlider value]);
     KSAUGraphNextTriggerInfo info;
     info.channel = nextChannel;
     info.interval = [intervalSlider value];

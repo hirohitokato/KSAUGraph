@@ -101,7 +101,6 @@ static OSStatus renderCallback(void*                       inRefCon,
         if (targetFrame == node.cumulativeFrames) {
             if (node.channel == node.nextChannel) {
                 // 次から再生
-                NSLog(@"start playing node[%d]",node.channel);
                 [node preparePlay];
             }
             // その次のトリガーフレームを取得
