@@ -270,6 +270,22 @@ static OSStatus renderCallback(void*                       inRefCon,
     [triggers_ release]; triggers_ = nil;
 }
 
+- (void)recoverIfNeeded {
+    Boolean isOpened, isInitialized, isRunning;
+    OSStatus ret;
+    ret = AUGraphIsOpen(auGraph_, &isOpened);
+    if (!isOpened) {
+        [self prepareWithChannels:[channels_ autorelease]];
+    }
+    ret = AUGraphIsInitialized(auGraph_, &isInitialized);
+    if (!isInitialized) {
+        AUGraphInitialize(auGraph_);
+    }
+    ret = AUGraphIsRunning(auGraph_, &isRunning);
+    if (!isRunning) {
+        [self stop];
+    }
+}
 - (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened {
     OSStatus ret1, ret2, ret3;
     ret1 = AUGraphIsRunning(auGraph_, isRunning);
@@ -313,6 +329,7 @@ static OSStatus renderCallback(void*                       inRefCon,
                           kAudioUnitScope_Output,
                           0,
                           &volume);
+    NSLog(@"Volume : %f", volume);
     return volume;
 }
 - (void)setVolume:(Float32)volume {

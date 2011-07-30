@@ -22,6 +22,7 @@
     [isInitializedLabel release];
     [isOpenedLabel release];
     [returnCodeLabel release];
+    [volumeSlider release];
     [super dealloc];
 }
 
@@ -39,10 +40,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    minValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.minimumValue];
-    maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.maximumValue];
-    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
-
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     mgr.delegate = self;
     NSString *path = [[NSBundle mainBundle] pathForResource:@"analog_rest" ofType:@"caf"];
@@ -53,6 +50,12 @@
     KSAUGraphNode *node1 = [[[KSAUGraphNode alloc] initWithContentsOfURL:fileURL] autorelease];
 
     [mgr prepareWithChannels:[NSArray arrayWithObjects:node0, node1, nil]];
+
+    minValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.minimumValue];
+    maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.maximumValue];
+    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
+    volumeSlider.value = mgr.volume;
+    [self getStatus:nil];
 }
 
 - (void)viewDidUnload
@@ -73,6 +76,8 @@
     isOpenedLabel = nil;
     [returnCodeLabel release];
     returnCodeLabel = nil;
+    [volumeSlider release];
+    volumeSlider = nil;
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -117,5 +122,10 @@
     isInitializedLabel.text = [NSString stringWithFormat:@"%@", isInitialized?@"YES":@"NO"];
     isOpenedLabel.text = [NSString stringWithFormat:@"%@", isOpened?@"YES":@"NO"];
     returnCodeLabel.text = [NSString stringWithFormat:@"%d", ret];
+}
+
+- (IBAction)volumeChanged:(UISlider *)sender {
+    KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+    [mgr setVolume:[sender value]];
 }
 @end

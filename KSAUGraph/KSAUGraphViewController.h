@@ -19,10 +19,12 @@
     IBOutlet UILabel *isInitializedLabel;
     IBOutlet UILabel *isOpenedLabel;
     IBOutlet UILabel *returnCodeLabel;
+    IBOutlet UISlider *volumeSlider;
 }
 - (IBAction)play:(id)sender;
 - (IBAction)stop:(id)sender;
 - (IBAction)intervalChanged:(id)sender;
 - (IBAction)getStatus:(id)sender;
+- (IBAction)volumeChanged:(UISlider *)sender;
 
 @end
