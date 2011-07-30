@@ -14,7 +14,7 @@
     IBOutlet UILabel *minValueLabel;
     IBOutlet UILabel *maxValueLabel;
     IBOutlet UILabel *currentValueLabel;
-    IBOutlet UISlider *interval;
+    IBOutlet UISlider *intervalSlider;
 }
 - (IBAction)play:(id)sender;
 - (IBAction)stop:(id)sender;

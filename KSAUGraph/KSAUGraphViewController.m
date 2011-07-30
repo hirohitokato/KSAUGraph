@@ -16,7 +16,7 @@
 {
     [maxValueLabel release];
     [minValueLabel release];
-    [interval release];
+    [intervalSlider release];
     [currentValueLabel release];
     [super dealloc];
 }
@@ -35,9 +35,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    minValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.minimumValue];
-    maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.maximumValue];
-    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.value];
+    minValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.minimumValue];
+    maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.maximumValue];
+    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
 
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     mgr.delegate = self;
@@ -57,8 +57,8 @@
     maxValueLabel = nil;
     [minValueLabel release];
     minValueLabel = nil;
-    [interval release];
-    interval = nil;
+    [intervalSlider release];
+    intervalSlider = nil;
     [currentValueLabel release];
     currentValueLabel = nil;
     [super viewDidUnload];
@@ -75,10 +75,10 @@
 - (KSAUGraphNextTriggerInfo)nextTriggerInfo:(KSAUGraphManager *)audioManager {
     static int nextChannel = 1;
     nextChannel = (nextChannel==1)?0:1;
-
+    NSLog(@"next: {%i, %f}", nextChannel, [intervalSlider value]);
     KSAUGraphNextTriggerInfo info;
     info.channel = nextChannel;
-    info.interval = [interval value];
+    info.interval = [intervalSlider value];
 
     return info;
 }
@@ -95,6 +95,6 @@
 }
 
 - (IBAction)intervalChanged:(id)sender {
-    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", interval.value];
+    currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
 }
 @end

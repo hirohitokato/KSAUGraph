@@ -2,7 +2,7 @@
 //  main.m
 //  KSAUGraph
 //
-//  Created by åŠ è—¤ å¯›äºº on 11/07/26.
+//  Created by ‰Á“¡Š°l on 11/07/26.
 //  Copyright 2011 KatokichiSoft. All rights reserved.
 //
 

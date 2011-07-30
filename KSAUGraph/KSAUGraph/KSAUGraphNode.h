@@ -22,7 +22,9 @@
     BOOL isPlaying_;            // 現在再生中かどうか
     UInt64 cumulativeFrames_;   // 全体の再生開始を0とした累積のフレーム数
     UInt64 currentPos_;         // 現在の再生位置
+
     UInt64 nextTriggerFrame_;   // 次の区切りとなる位置
+    int nextChannel_;           // 次の区切りで再生するチャネル
 
     // サウンドデータのパラメータ
     UInt32 numberOfChannels_;           // サウンドファイルのチャンネル数
@@ -41,6 +43,8 @@
 @property (assign, nonatomic)BOOL isPlaying;
 // 次の区切り位置
 @property (assign, nonatomic)UInt64 nextTriggerFrame;
+// 次の区切りで再生するチャネル
+@property (assign, nonatomic)int nextChannel;
 
 // データフィル用コールバック関数（インプリ側の処理）
 - (UInt32)renderCallbackWithFlags:(AudioUnitRenderActionFlags *)ioActionFlags
@@ -52,6 +56,9 @@
 
 // 指定したファイルで初期化（インプリ側の処理）
 - (id)initWithContentsOfURL:(NSURL*)url;
+
+// 内部値のリセット
+- (void)reset;
 
 // 再生の準備
 - (void)preparePlay;

@@ -9,6 +9,32 @@
 #import "KSAUGraphManager.h"
 #import "KSAUGraphNode.h"
 
+// オーディオ再生タイミングを扱うプライベートクラス
+@interface ksauIntervalInfo : NSObject {
+@private
+    UInt64  nextTriggerFrame_;  // 再生開始するタイミング（フレーム）
+    int     channel_;   // 再生開始するチャネル
+    int     count_;     // 参照された回数
+}
+@property (nonatomic, assign)UInt64 nextTriggerFrame;
+@property (nonatomic, assign)int channel;
+@property (nonatomic, assign)int count;
+@end
+
+@implementation ksauIntervalInfo
+@synthesize nextTriggerFrame=nextTriggerFrame_, channel=channel_, count=count_;
+- (id)init {
+    self = [super init];
+    if (self) {
+        nextTriggerFrame_ = 0;
+        channel_ = -1;
+        count_ = 0;
+    }
+    return self;
+}
+@end
+
+#pragma mark -
 @interface KSAUGraphManager ()
 #pragma mark Private methods
 // オーディオリソースの解放
@@ -21,8 +47,6 @@
 
 @implementation KSAUGraphManager
 @synthesize delegate=delegate_;
-@synthesize currentChannel=currentChannel_,currentTriggerFrame=currentTriggerFrame_;
-@synthesize nextChannel=nextChannel_,nextTriggerFrame=nextTriggerFrame_;
 
 static id _instance = nil;
 static BOOL _willDelete = NO;
@@ -35,11 +59,7 @@ static BOOL _willDelete = NO;
         multiChannelMixerAudioUnit_ = NULL;
         delegate_ = nil;
 
-        currentTriggerFrame_ = 0;
-        currentChannel_ = -1;
-        nextTriggerFrame_ = 0;
-        nextChannel_ = -1;
-        count_ = 0;
+        triggers_ = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -57,7 +77,8 @@ static OSStatus renderCallback(void*                       inRefCon,
     AudioUnitSampleType *outL = ioData->mBuffers[0].mData;
     AudioUnitSampleType *outR = ioData->mBuffers[1].mData;
 
-    UInt64 targetFrame = manager.currentTriggerFrame;
+    UInt64 targetFrame = node.nextTriggerFrame;
+    int    targetChannel = node.nextChannel;
     UInt32 bufferRemains = inNumberFrames;
 
     do {
@@ -78,17 +99,18 @@ static OSStatus renderCallback(void*                       inRefCon,
 
         // 次のトリガーフレームに到達？
         if (targetFrame == node.cumulativeFrames) {
-            if (node.channel == manager.currentChannel) {
+            if (node.channel == node.nextChannel) {
                 // 次から再生
+                NSLog(@"start playing node[%d]",node.channel);
                 [node preparePlay];
             }
             // その次のトリガーフレームを取得
             UInt64 nextTriggerFrame;
-            int nextChannel;
             [manager nextTriggerFrame:&nextTriggerFrame
-                              channel:&nextChannel
+                              channel:&targetChannel
                          currentFrame:targetFrame];
             node.nextTriggerFrame = targetFrame = nextTriggerFrame;
+            node.nextChannel = targetChannel;
         } else if (targetFrame < node.cumulativeFrames) {
             // これはおかしい
             NSLog(@"targetFrame(%llu) < node.cumulativeFrames(%llu)",targetFrame,node.cumulativeFrames);
@@ -102,33 +124,47 @@ static OSStatus renderCallback(void*                       inRefCon,
 - (void)nextTriggerFrame:(UInt64 *)nextFrame
                  channel:(int*)nextChannel
             currentFrame:(UInt64)currentFrame {
-    if (currentFrame != currentTriggerFrame_) {
-        NSLog(@"ERROR: current(%llu) is not triggerFrame(%llu)!!", currentFrame, currentTriggerFrame_);
+
+    // 現在の情報と、取得できるなら次の情報を取得
+    ksauIntervalInfo *now=nil, *next=nil;
+    int numTriggers = [triggers_ count];
+    for (int index=0; index<numTriggers; index++) {
+        ksauIntervalInfo *obj = [triggers_ objectAtIndex:index];
+        if (obj.nextTriggerFrame == currentFrame) {
+            now = obj;
+            if (index<(numTriggers-1)) {
+                next = [triggers_ objectAtIndex:index+1];
+            }
+            break;
+        }
+    }
+    
+    if (!now) {
+        NSLog(@"ERROR: current frame(%llu) is not triggerFrame!!", currentFrame);
         exit(1);
     }
-    // else NSLog(@"current(%llu) is OK.", currentFrame);
 
-    count_++;
     // 次の情報が未取得であれば、問い合わせる
-    if (currentTriggerFrame_ == nextTriggerFrame_) {
+    if (!next) {
         if (delegate_) {
             KSAUGraphNextTriggerInfo info = [delegate_ nextTriggerInfo:self];
-            nextTriggerFrame_ = info.interval*44100 + currentFrame;
-            nextChannel_ = info.channel;
+            next = [[ksauIntervalInfo alloc] init];
+            next.nextTriggerFrame = info.interval*44100 + currentFrame;
+            next.channel = info.channel;
+            [triggers_ addObject:next];
+            [next release];
         } else {
             NSLog(@"ERROR: delegate is nil!");
             exit(1);
         }
     }
-    // 全バスが情報を取得できたら、次へ
-    if (count_==[channels_ count]) {
-        count_ = 0;
-        currentChannel_ = nextChannel_;
-        currentTriggerFrame_ = nextTriggerFrame_;
+    // 全バスが情報を取得していたら、該当する情報を配列から除外
+    if (++now.count == [channels_ count]) {
+        [triggers_ removeObject:now];
     }
     // 情報を返す
-    *nextChannel = nextChannel_;
-    *nextFrame = nextTriggerFrame_;
+    *nextFrame = next.nextTriggerFrame;
+    *nextChannel = next.channel;
     return;
 }
 
@@ -142,13 +178,14 @@ static OSStatus renderCallback(void*                       inRefCon,
         NSLog(@"Delegate property must not be nil.");
         return;
     }
-    AudioSessionSetFrameBufferSize(44010.0f, 2048);
     channels_ = [array retain];
 
+    OSStatus err;
+
+    AudioSessionSetFrameBufferSize(44100.0, 1024);
     //AUGraphをインスタンス化
-    NewAUGraph(&auGraph_);
-	AUGraphOpen(auGraph_);
-    AudioSessionSetFrameBufferSize(44010.0f, 2048);
+    err = NewAUGraph(&auGraph_); KSAUCheckError(err, "NewAUGraph");
+	err = AUGraphOpen(auGraph_); KSAUCheckError(err, "AUGraphOpen");
 
     //Remote IOのAudioComponentDescriptionを用意する
     AudioComponentDescription cd;
@@ -160,7 +197,8 @@ static OSStatus renderCallback(void*                       inRefCon,
     
     //AUGraphにRemote IOのノードを追加する
     AUNode remoteIONode;
-    AUGraphAddNode(auGraph_, &cd, &remoteIONode);
+    err = AUGraphAddNode(auGraph_, &cd, &remoteIONode);
+    KSAUCheckError(err, "AUGraphAddNode(remoteIONode)");
     
     //MultiChannelMixerのAudioComponentDescriptionを用意する
     cd.componentType = kAudioUnitType_Mixer;
@@ -169,7 +207,7 @@ static OSStatus renderCallback(void*                       inRefCon,
     //AUGraphにMultiChannelMixerのノードを追加する
     AUNode multiChannelMixerNode;
     AUGraphAddNode(auGraph_, &cd, &multiChannelMixerNode);
-    
+    KSAUCheckError(err, "AUGraphAddNode(multiChannelMixerNode)");
     
     // インプットバスにコールバック関数を登録
     // 引数には配列の各要素を渡す
@@ -182,34 +220,44 @@ static OSStatus renderCallback(void*                       inRefCon,
         callbackStruct.inputProc = renderCallback;
         callbackStruct.inputProcRefCon = node;      
         // ミキサーの各バスにコールバック関数を設定
-        AUGraphSetNodeInputCallback(auGraph_, 
-                                    multiChannelMixerNode, i, // ミキサーノードのi番目のバスナンバー
-                                    &callbackStruct);
+        err = AUGraphSetNodeInputCallback(auGraph_, 
+                                          // ミキサーノードのi番目のバスナンバー
+                                          multiChannelMixerNode, i,
+                                          &callbackStruct);
+        KSAUCheckError(err, "AUGraphSetNodeInputCallback");
     }
     
     AudioUnit remoteIOAudioUnit;
-    AUGraphNodeInfo(auGraph_, remoteIONode, 
-                    NULL, &remoteIOAudioUnit);
+    err = AUGraphNodeInfo(auGraph_, remoteIONode, 
+                          NULL, &remoteIOAudioUnit);
+    KSAUCheckError(err, "AUGraphNodeInfo(&remoteIOAudioUnit)");
     
-    AUGraphNodeInfo(auGraph_, multiChannelMixerNode,
-                    NULL, &multiChannelMixerAudioUnit_);
+    err = AUGraphNodeInfo(auGraph_, multiChannelMixerNode,
+                          NULL, &multiChannelMixerAudioUnit_);
+    KSAUCheckError(err, "AUGraphNodeInfo(&multiChannelMixerAudioUnit_)");
 
     //それぞれのAudio UnitにASBD(Audio Unit正準形)を設定する
 	AudioStreamBasicDescription audioFormat = AUCanonicalASBD(44100.0, 2);
-    AudioUnitSetProperty(remoteIOAudioUnit,
-                         kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
-                         &audioFormat, sizeof(audioFormat));
-    AudioUnitSetProperty(multiChannelMixerAudioUnit_,
-                         kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
-                         &audioFormat, sizeof(audioFormat));
+    err = AudioUnitSetProperty(remoteIOAudioUnit,
+                               kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
+                               &audioFormat, sizeof(audioFormat));
+    KSAUCheckError(err, "AudioUnitSetProperty(remoteIOAudioUnit)");
+    err = AudioUnitSetProperty(multiChannelMixerAudioUnit_,
+                               kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
+                               &audioFormat, sizeof(audioFormat));
+    KSAUCheckError(err, "AudioUnitSetProperty(multiChannelMixerAudioUnit_)");
     
     //multiChannelMixerNode(バス:0)からremoteIONode(バス:0)に繫ぐ
-    AUGraphConnectNodeInput(auGraph_, 
-                            multiChannelMixerNode, 0,   // このノードのこのバス(output)から
-                            remoteIONode, 0);           // このノードのこのバス(input)に接続する
-    
+    err = AUGraphConnectNodeInput(auGraph_, 
+                                  // このノードのこのバス(output)から
+                                  multiChannelMixerNode, 0,
+                                  // このノードのこのバス(input)に接続する
+                                  remoteIONode, 0);
+    KSAUCheckError(err, "AUGraphConnectNodeInput(auGraph_)");
+
     //準備が整ったらAUGraphを初期化
-    AUGraphInitialize(auGraph_);
+    err = AUGraphInitialize(auGraph_);
+    KSAUCheckError(err, "AUGraphInitialize(auGraph_)");    
 }
 
 - (void)unload {
@@ -220,23 +268,21 @@ static OSStatus renderCallback(void*                       inRefCon,
     auGraph_ = NULL;
     multiChannelMixerAudioUnit_ = NULL;
     [channels_ release]; channels_ = nil;
+    [triggers_ release]; triggers_ = nil;
 }
 
 #pragma mark -
 -(void)play {
     if(!isPlaying_){
         for (KSAUGraphNode *node in channels_) {
-            node.currentFrame = 0;
-            node.cumulativeFrames = 0;
-            node.isPlaying = YES;
-
-            currentTriggerFrame_ = 0;
-            currentChannel_ = -1;
-            nextTriggerFrame_ = 0;
-            nextChannel_ = -1;
-            count_ = 0;
+            [node reset];
         }
-        AUGraphStart(auGraph_);
+        // 初期値を代入しておく
+        ksauIntervalInfo *i = [[[ksauIntervalInfo alloc] init] autorelease];
+        [triggers_ addObject:i];
+
+        OSStatus err = AUGraphStart(auGraph_);
+        KSAUCheckError(err, "AUGraphStart(auGraph_)");
     } else {
         NSLog(@"Warning: play method is called though now is playing.");
     }
@@ -246,6 +292,9 @@ static OSStatus renderCallback(void*                       inRefCon,
 -(void)stop {
     if(isPlaying_) {
         AUGraphStop(auGraph_);
+        [triggers_ removeAllObjects];
+    } else {
+        NSLog(@"Warning: stop method is called though now is not playing.");
     }
     isPlaying_ = NO;
 }

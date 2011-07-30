@@ -20,6 +20,7 @@
 @synthesize cumulativeFrames = cumulativeFrames_;
 @synthesize currentFrame = currentPos_;
 @synthesize nextTriggerFrame = nextTriggerFrame_;
+@synthesize nextChannel = nextChannel_;
 
 #pragma mark Memory management
 -(id)initWithContentsOfURL:(NSURL*)url{
@@ -107,6 +108,13 @@
 
 #pragma mark -
 #pragma mark Rendering
+- (void)reset {
+    currentPos_ = 0;
+    cumulativeFrames_ = 0;
+    nextChannel_ = -1;
+    nextTriggerFrame_ = 0;
+    isPlaying_ = NO;
+}
 - (void)preparePlay {
     currentPos_ = 0;
     isPlaying_ = YES;
