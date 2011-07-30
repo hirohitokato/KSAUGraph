@@ -270,6 +270,14 @@ static OSStatus renderCallback(void*                       inRefCon,
     [triggers_ release]; triggers_ = nil;
 }
 
+- (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened {
+    OSStatus ret1, ret2, ret3;
+    ret1 = AUGraphIsRunning(auGraph_, isRunning);
+    ret2 = AUGraphIsInitialized(auGraph_, isInitialized);
+    ret3 = AUGraphIsOpen(auGraph_, isOpened);
+    return ((ret1<<2) | (ret2<<1) | (ret3));
+}
+
 #pragma mark -
 -(void)play {
     if(!isPlaying_){

@@ -51,4 +51,7 @@ typedef struct {
 // 全体のボリュームを設定・取得(0.0〜1.0)
 - (void)setVolume:(Float32)volume;
 - (Float32)volume;
+
+// デバッグ（現在状態の取得）
+- (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened;
 @end

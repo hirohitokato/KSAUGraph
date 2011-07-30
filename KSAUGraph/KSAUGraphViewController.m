@@ -18,6 +18,10 @@
     [minValueLabel release];
     [intervalSlider release];
     [currentValueLabel release];
+    [isRunningLabel release];
+    [isInitializedLabel release];
+    [isOpenedLabel release];
+    [returnCodeLabel release];
     [super dealloc];
 }
 
@@ -61,6 +65,14 @@
     intervalSlider = nil;
     [currentValueLabel release];
     currentValueLabel = nil;
+    [isRunningLabel release];
+    isRunningLabel = nil;
+    [isInitializedLabel release];
+    isInitializedLabel = nil;
+    [isOpenedLabel release];
+    isOpenedLabel = nil;
+    [returnCodeLabel release];
+    returnCodeLabel = nil;
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -95,5 +107,15 @@
 
 - (IBAction)intervalChanged:(id)sender {
     currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
+}
+
+- (IBAction)getStatus:(id)sender {
+    Boolean isRunning, isInitialized, isOpened;
+    KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+    int ret = [mgr isRunning:&isRunning isInitialized:&isInitialized isOpened:&isOpened];
+    isRunningLabel.text = [NSString stringWithFormat:@"%@", isRunning?@"YES":@"NO"];
+    isInitializedLabel.text = [NSString stringWithFormat:@"%@", isInitialized?@"YES":@"NO"];
+    isOpenedLabel.text = [NSString stringWithFormat:@"%@", isOpened?@"YES":@"NO"];
+    returnCodeLabel.text = [NSString stringWithFormat:@"%d", ret];
 }
 @end

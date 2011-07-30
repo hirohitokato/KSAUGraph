@@ -15,9 +15,14 @@
     IBOutlet UILabel *maxValueLabel;
     IBOutlet UILabel *currentValueLabel;
     IBOutlet UISlider *intervalSlider;
+    IBOutlet UILabel *isRunningLabel;
+    IBOutlet UILabel *isInitializedLabel;
+    IBOutlet UILabel *isOpenedLabel;
+    IBOutlet UILabel *returnCodeLabel;
 }
 - (IBAction)play:(id)sender;
 - (IBAction)stop:(id)sender;
 - (IBAction)intervalChanged:(id)sender;
+- (IBAction)getStatus:(id)sender;
 
 @end
