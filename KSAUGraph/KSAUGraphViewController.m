@@ -105,7 +105,7 @@
 - (IBAction)play:(id)sender {
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     NSLog(@"Start playing.");
-    [mgr play];
+    [mgr start];
 }
 
 - (IBAction)stop:(id)sender {

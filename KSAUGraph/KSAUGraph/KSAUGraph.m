@@ -48,7 +48,7 @@ static void interruption(void *inClientData, UInt32 inInterruptionState) {
         [mgr stop];
     } else {
         NSLog(@"End interruption");
-        [mgr play];
+        [mgr start];
     }
     AudioSessionSetActive(YES);
 }
@@ -290,7 +290,7 @@ static OSStatus renderCallback(void*                       inRefCon,
 }
 
 #pragma mark -
--(void)play {
+-(void)start {
     if(!isPlaying_){
         for (KSAUGraphNode *node in channels_) {
             [node reset];

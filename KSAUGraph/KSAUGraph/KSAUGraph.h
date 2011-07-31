@@ -37,15 +37,16 @@ typedef struct {
 @property (assign, nonatomic)Float32 volume;
 @property (assign, nonatomic)id<KSAUGraphManagerDelegate> delegate;
 
+#pragma mark 外部API
 // シングルトンオブジェクトの取得
 + (id)sharedInstance;
 
-// オーディオ出力の準備
+// オーディオ出力の準備（初期化処理）
 // arrayには各チャネルを定義したクラスを入れておく（最大８個）
 - (void)prepareWithChannels:(NSArray *)array;
 
 // 動作開始/停止
--(void)play;
+-(void)start;
 -(void)stop;
 
 // 全体のボリュームを設定・取得(0.0〜1.0)
