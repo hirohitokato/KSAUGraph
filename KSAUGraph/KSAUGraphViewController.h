@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "KSAUGraphManager.h"
+#import "KSAUGraph.h"
 
 @interface KSAUGraphViewController : UIViewController <KSAUGraphManagerDelegate>{
     
