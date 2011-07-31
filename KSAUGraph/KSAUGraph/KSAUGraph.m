@@ -1,5 +1,5 @@
 //
-//  KSAUGraphManager.m
+//  KSAUGraph.m
 //  KSAUGraph
 //
 //  Created by 加藤 寛人 on 11/07/26.
@@ -18,6 +18,15 @@
 - (void)nextTriggerFrame:(UInt64 *)nextFrame
                  channel:(int*)nextChannel
             currentFrame:(UInt64)currentFrame;
+
+static OSStatus renderCallback(void*                       inRefCon,
+                               AudioUnitRenderActionFlags* ioActionFlags,
+                               const AudioTimeStamp*       inTimeStamp,
+                               UInt32                      inBusNumber,
+                               UInt32                      inNumberFrames,
+                               AudioBufferList*            ioData
+                               );
+static void interruption(void *inClientData, UInt32 inInterruptionState);
 @end
 
 #pragma mark -
@@ -38,122 +47,6 @@ static BOOL _willDelete = NO;
         triggers_ = [[NSMutableArray alloc] init];
     }
     return self;
-}
-
-static void interruption(void *inClientData, UInt32 inInterruptionState) {
-    KSAUGraphManager *mgr = inClientData;
-    
-    if (inInterruptionState == kAudioSessionBeginInterruption) {
-        NSLog(@"Begin interruption");
-        [mgr stop];
-    } else {
-        NSLog(@"End interruption");
-        [mgr start];
-    }
-    AudioSessionSetActive(YES);
-}
-
-static OSStatus renderCallback(void*                       inRefCon,
-                               AudioUnitRenderActionFlags* ioActionFlags,
-                               const AudioTimeStamp*       inTimeStamp,
-                               UInt32                      inBusNumber,
-                               UInt32                      inNumberFrames,
-                               AudioBufferList*            ioData
-                               ){
-    KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
-    KSAUGraphManager *manager = node.manager;
-
-    AudioUnitSampleType *outL = ioData->mBuffers[0].mData;
-    AudioUnitSampleType *outR = ioData->mBuffers[1].mData;
-
-    UInt64 targetFrame = node.nextTriggerFrame;
-    int    targetChannel = node.nextChannel;
-    UInt32 bufferRemains = inNumberFrames;
-
-    do {
-        // フィルする単位を決定（inNumberFramesすべてか、次のトリガーフレームまでか）
-        UInt32 nextFrame = MIN(targetFrame-node.cumulativeFrames, bufferRemains);
-
-        // nextFrameまでフィルしてもらう
-        [node renderCallbackWithFlags:ioActionFlags
-                            timeStamp:inTimeStamp
-                            busNumber:inBusNumber
-                       inNumberFrames:nextFrame
-                              outLeft:outL
-                             outRight:outR];
-        //フィルした量で残りの書き込む量と、書き込み位置(L/R)を更新
-        bufferRemains -= nextFrame;
-        outL += nextFrame;
-        outR += nextFrame;
-
-        // 次のトリガーフレームに到達？
-        if (targetFrame == node.cumulativeFrames) {
-            if (node.channel == node.nextChannel) {
-                // 次から再生
-                [node preparePlay];
-            }
-            // その次のトリガーフレームを取得
-            UInt64 nextTriggerFrame;
-            [manager nextTriggerFrame:&nextTriggerFrame
-                              channel:&targetChannel
-                         currentFrame:targetFrame];
-            node.nextTriggerFrame = targetFrame = nextTriggerFrame;
-            node.nextChannel = targetChannel;
-        } else if (targetFrame < node.cumulativeFrames) {
-            // これはおかしい
-            NSLog(@"targetFrame(%llu) < node.cumulativeFrames(%llu)",targetFrame,node.cumulativeFrames);
-            exit(1);
-        }
-    } while(bufferRemains > 0);
-
-    return noErr;
-}
-
-- (void)nextTriggerFrame:(UInt64 *)nextFrame
-                 channel:(int*)nextChannel
-            currentFrame:(UInt64)currentFrame {
-
-    // 現在の情報と、取得できるなら次の情報を取得
-    ksauIntervalInfo *now=nil, *next=nil;
-    int numTriggers = [triggers_ count];
-    for (int index=0; index<numTriggers; index++) {
-        ksauIntervalInfo *obj = [triggers_ objectAtIndex:index];
-        if (obj.nextTriggerFrame == currentFrame) {
-            now = obj;
-            if (index<(numTriggers-1)) {
-                next = [triggers_ objectAtIndex:index+1];
-            }
-            break;
-        }
-    }
-    
-    if (!now) {
-        NSLog(@"ERROR: current frame(%llu) is not triggerFrame!!", currentFrame);
-        exit(1);
-    }
-
-    // 次の情報が未取得であれば、問い合わせる
-    if (!next) {
-        if (delegate_) {
-            KSAUGraphNextTriggerInfo info = [delegate_ nextTriggerInfo:self];
-            next = [[ksauIntervalInfo alloc] init];
-            next.nextTriggerFrame = info.interval*44100 + currentFrame;
-            next.channel = info.channel;
-            [triggers_ addObject:next];
-            [next release];
-        } else {
-            NSLog(@"ERROR: delegate is nil!");
-            exit(1);
-        }
-    }
-    // 全バスが情報を取得していたら、該当する情報を配列から除外
-    if (++now.count == [channels_ count]) {
-        [triggers_ removeObject:now];
-    }
-    // 情報を返す
-    *nextFrame = next.nextTriggerFrame;
-    *nextChannel = next.channel;
-    return;
 }
 
 - (void)prepareWithChannels:(NSArray *)array {
@@ -390,6 +283,123 @@ static OSStatus renderCallback(void*                       inRefCon,
     [self unload];
 
     [super dealloc];
+}
+
+#pragma mark -
+static OSStatus renderCallback(void*                       inRefCon,
+                               AudioUnitRenderActionFlags* ioActionFlags,
+                               const AudioTimeStamp*       inTimeStamp,
+                               UInt32                      inBusNumber,
+                               UInt32                      inNumberFrames,
+                               AudioBufferList*            ioData
+                               ){
+    KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
+    KSAUGraphManager *manager = node.manager;
+    
+    AudioUnitSampleType *outL = ioData->mBuffers[0].mData;
+    AudioUnitSampleType *outR = ioData->mBuffers[1].mData;
+    
+    UInt64 targetFrame = node.nextTriggerFrame;
+    int    targetChannel = node.nextChannel;
+    UInt32 bufferRemains = inNumberFrames;
+    
+    do {
+        // フィルする単位を決定（inNumberFramesすべてか、次のトリガーフレームまでか）
+        UInt32 nextFrame = MIN(targetFrame-node.cumulativeFrames, bufferRemains);
+        
+        // nextFrameまでフィルしてもらう
+        [node renderCallbackWithFlags:ioActionFlags
+                            timeStamp:inTimeStamp
+                            busNumber:inBusNumber
+                       inNumberFrames:nextFrame
+                              outLeft:outL
+                             outRight:outR];
+        //フィルした量で残りの書き込む量と、書き込み位置(L/R)を更新
+        bufferRemains -= nextFrame;
+        outL += nextFrame;
+        outR += nextFrame;
+        
+        // 次のトリガーフレームに到達？
+        if (targetFrame == node.cumulativeFrames) {
+            if (node.channel == node.nextChannel) {
+                // 次から再生
+                [node preparePlay];
+            }
+            // その次のトリガーフレームを取得
+            UInt64 nextTriggerFrame;
+            [manager nextTriggerFrame:&nextTriggerFrame
+                              channel:&targetChannel
+                         currentFrame:targetFrame];
+            node.nextTriggerFrame = targetFrame = nextTriggerFrame;
+            node.nextChannel = targetChannel;
+        } else if (targetFrame < node.cumulativeFrames) {
+            // これはおかしい
+            NSLog(@"targetFrame(%llu) < node.cumulativeFrames(%llu)",targetFrame,node.cumulativeFrames);
+            exit(1);
+        }
+    } while(bufferRemains > 0);
+    
+    return noErr;
+}
+
+static void interruption(void *inClientData, UInt32 inInterruptionState) {
+    KSAUGraphManager *mgr = inClientData;
+    
+    if (inInterruptionState == kAudioSessionBeginInterruption) {
+        NSLog(@"Begin interruption");
+        [mgr stop];
+    } else {
+        NSLog(@"End interruption");
+        [mgr start];
+        AudioSessionSetActive(YES);
+    }
+}
+
+- (void)nextTriggerFrame:(UInt64 *)nextFrame
+                 channel:(int*)nextChannel
+            currentFrame:(UInt64)currentFrame {
+    
+    // 現在の情報と、取得できるなら次の情報を取得
+    ksauIntervalInfo *now=nil, *next=nil;
+    int numTriggers = [triggers_ count];
+    for (int index=0; index<numTriggers; index++) {
+        ksauIntervalInfo *obj = [triggers_ objectAtIndex:index];
+        if (obj.nextTriggerFrame == currentFrame) {
+            now = obj;
+            if (index<(numTriggers-1)) {
+                next = [triggers_ objectAtIndex:index+1];
+            }
+            break;
+        }
+    }
+    
+    if (!now) {
+        NSLog(@"ERROR: current frame(%llu) is not triggerFrame!!", currentFrame);
+        exit(1);
+    }
+    
+    // 次の情報が未取得であれば、問い合わせる
+    if (!next) {
+        if (delegate_) {
+            KSAUGraphNextTriggerInfo info = [delegate_ nextTriggerInfo:self];
+            next = [[ksauIntervalInfo alloc] init];
+            next.nextTriggerFrame = info.interval*44100 + currentFrame;
+            next.channel = info.channel;
+            [triggers_ addObject:next];
+            [next release];
+        } else {
+            NSLog(@"ERROR: delegate is nil!");
+            exit(1);
+        }
+    }
+    // 全バスが情報を取得していたら、該当する情報を配列から除外
+    if (++now.count == [channels_ count]) {
+        [triggers_ removeObject:now];
+    }
+    // 情報を返す
+    *nextFrame = next.nextTriggerFrame;
+    *nextChannel = next.channel;
+    return;
 }
 
 @end

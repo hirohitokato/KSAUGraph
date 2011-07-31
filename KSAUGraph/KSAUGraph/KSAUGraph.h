@@ -1,5 +1,5 @@
 //
-//  KSAUGraphManager.h
+//  KSAUGraph.h
 //  KSAUGraph
 //
 //  Created by 加藤 寛人 on 11/07/26.
@@ -53,6 +53,6 @@ typedef struct {
 - (void)setVolume:(Float32)volume;
 - (Float32)volume;
 
-// デバッグ（現在状態の取得）
+// 現在状態の取得（デバッグ）
 - (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened;
 @end
