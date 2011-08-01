@@ -51,12 +51,13 @@
 
     [mgr prepareWithChannels:[NSArray arrayWithObjects:node0, node1, nil]];
 
-    minValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.minimumValue];
-    maxValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.maximumValue];
+    minValueLabel.text = [NSString stringWithFormat:@"%2.0f", intervalSlider.minimumValue];
+    maxValueLabel.text = [NSString stringWithFormat:@"%2.0f", intervalSlider.maximumValue];
     currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
     volumeSlider.value = mgr.volume;
     [self getStatus:nil];
 
+    // 割り込み用コールバックの設定
 	UInt32 category = kAudioSessionCategory_MediaPlayback;
 	OSStatus result = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
 	if (result) printf("Error setting audio session category! %d\n", (int)result);
@@ -98,7 +99,7 @@
     nextChannel = (nextChannel==1)?0:1;
     KSAUGraphNextTriggerInfo info;
     info.channel = nextChannel;
-    info.interval = [intervalSlider value];
+    info.interval = [audioManager intervalForBpm:[intervalSlider value]];
 
     return info;
 }

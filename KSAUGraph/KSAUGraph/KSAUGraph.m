@@ -26,7 +26,7 @@ static OSStatus renderCallback(void*                       inRefCon,
                                UInt32                      inNumberFrames,
                                AudioBufferList*            ioData
                                );
-static void interruption(void *inClientData, UInt32 inInterruptionState);
+static void interruptionCallback(void *inClientData, UInt32 inInterruptionState);
 @end
 
 #pragma mark -
@@ -143,7 +143,7 @@ static BOOL _willDelete = NO;
     //割り込みに対してコールバックを設定
     // 再生中にスリープ、ロック画面でMusic再生をすると、元に戻ってきたときにサウンドが
     // 止まったままになってしまう不具合に対処
-    AudioSessionInitialize(NULL, NULL, interruption, self);
+    AudioSessionInitialize(NULL, NULL, interruptionCallback, self);
     AudioSessionSetActive(YES);
 }
 
@@ -232,6 +232,10 @@ static BOOL _willDelete = NO;
                           0, // バスナンバー
                           v, // ボリューム
                           0);
+}
+
+- (Float32)intervalForBpm:(Float32)bpm {
+    return 60/bpm;
 }
 
 #pragma mark -
@@ -342,11 +346,13 @@ static OSStatus renderCallback(void*                       inRefCon,
     return noErr;
 }
 
-static void interruption(void *inClientData, UInt32 inInterruptionState) {
+static void interruptionCallback(void *inClientData, UInt32 inInterruptionState) {
     KSAUGraphManager *mgr = inClientData;
     
     if (inInterruptionState == kAudioSessionBeginInterruption) {
         NSLog(@"Begin interruption");
+        // サウンド停止と、停止メッセージの受信
+        
         [mgr stop];
     } else {
         NSLog(@"End interruption");

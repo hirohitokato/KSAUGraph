@@ -107,9 +107,9 @@
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 						<int key="IBUIContentHorizontalAlignment">0</int>
 						<int key="IBUIContentVerticalAlignment">0</int>
-						<float key="IBUIValue">0.25</float>
-						<float key="IBUIMinValue">0.0099999997764825821</float>
-						<float key="IBUIMaxValue">1.5</float>
+						<float key="IBUIValue">120</float>
+						<float key="IBUIMinValue">6</float>
+						<float key="IBUIMaxValue">2400</float>
 					</object>
 					<object class="IBUILabel" id="947137629">
 						<reference key="NSNextResponder" ref="774585933"/>

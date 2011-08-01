@@ -45,13 +45,14 @@ typedef struct {
 // arrayには各チャネルを定義したクラスを入れておく（最大８個）
 - (void)prepareWithChannels:(NSArray *)array;
 
-// 動作開始/停止
--(void)start;
--(void)stop;
+-(void)start;   // 動作開始
+-(void)stop;    // 動作停止
 
-// 全体のボリュームを設定・取得(0.0〜1.0)
-- (void)setVolume:(Float32)volume;
-- (Float32)volume;
+- (void)setVolume:(Float32)volume;  // 全体のボリュームを設定(0.0〜1.0)
+- (Float32)volume;                  // 全体のボリュームを取得(0.0〜1.0)
+
+// BPMをインターバル(秒)に変換するユーティリティメソッド
+- (Float32)intervalForBpm:(Float32)bpm;
 
 // 現在状態の取得（デバッグ）
 - (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened;
