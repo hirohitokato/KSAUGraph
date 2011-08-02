@@ -136,7 +136,7 @@
     [mgr setVolume:[sender value]];
 }
 
-- (void)dedReceiveNotification:(NSNotification *)aNotification {
+- (void)didReceiveNotification:(NSNotification *)aNotification {
     NSLog(@"Receive a notification[%@]", [aNotification name]);
     [self getStatus:nil];
 }
