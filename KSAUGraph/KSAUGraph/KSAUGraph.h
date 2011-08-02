@@ -61,3 +61,6 @@ typedef struct {
 // 現在状態の取得（デバッグ）
 - (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened;
 @end
+
+// KSAUGraphのバージョンを返す関数
+NSString *KSAUGraphVersion();

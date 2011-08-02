@@ -5,10 +5,14 @@
 //  Created by 加藤 寛人 on 11/07/26.
 //  Copyright 2011 KatokichiSoft. All rights reserved.
 //
-
 #import "KSAUGraph.h"
 #import "KSAUGraphNode.h"
 #import "ksauIntervalInfo.h"
+
+static NSString *version = @"KSAUGraph v1.0.0";
+NSString *KSAUGraphVersion() {
+	return version;
+}
 
 @interface KSAUGraphManager ()
 #pragma mark Private methods
