@@ -61,6 +61,8 @@
 	UInt32 category = kAudioSessionCategory_MediaPlayback;
 	OSStatus result = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
 	if (result) printf("Error setting audio session category! %d\n", (int)result);
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self selector:@selector(dedReceiveNotification:) name:kKSAUAudioDidBeginInterruptionNotification object:nil];
 }
 
 - (void)viewDidUnload
@@ -132,5 +134,10 @@
 - (IBAction)volumeChanged:(UISlider *)sender {
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     [mgr setVolume:[sender value]];
+}
+
+- (void)dedReceiveNotification:(NSNotification *)aNotification {
+    NSLog(@"Receive a notification[%@]", [aNotification name]);
+    [self getStatus:nil];
 }
 @end

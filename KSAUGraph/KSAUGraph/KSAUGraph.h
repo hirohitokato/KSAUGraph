@@ -10,6 +10,11 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioUnit/AudioUnit.h>
 #import "iPhoneCoreAudio.h"
+@class KSAUGraphManager;
+
+// オーディオが割り込まれたときに呼ばれる通知
+#define kKSAUAudioDidBeginInterruptionNotification @"KSAUAudioDidBeginInterruption"
+#define kKSAUAudioDidEndInterruptionNotification @"KSAUAudioDidEndInterruption"
 
 // 次の再生タイミングの情報を返すときの構造体
 typedef struct {
@@ -17,10 +22,9 @@ typedef struct {
     int channel;
 } KSAUGraphNextTriggerInfo;
 
-@class KSAUGraphManager;
 @protocol KSAUGraphManagerDelegate<NSObject>
 @required
-// 次の再生までのインターバルを秒で返すこと
+// 次の再生までのインターバルを秒で返すためのデリゲートメソッド
 - (KSAUGraphNextTriggerInfo)nextTriggerInfo:(KSAUGraphManager *)audioManager;
 @end
 

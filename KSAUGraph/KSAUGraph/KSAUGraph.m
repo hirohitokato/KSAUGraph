@@ -352,12 +352,15 @@ static void interruptionCallback(void *inClientData, UInt32 inInterruptionState)
     if (inInterruptionState == kAudioSessionBeginInterruption) {
         NSLog(@"Begin interruption");
         // サウンド停止と、停止メッセージの受信
-        
         [mgr stop];
+        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+        [center postNotificationName:kKSAUAudioDidBeginInterruptionNotification object:mgr];
     } else {
         NSLog(@"End interruption");
         [mgr start];
         AudioSessionSetActive(YES);
+        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+        [center postNotificationName:kKSAUAudioDidEndInterruptionNotification object:mgr];
     }
 }
 

@@ -27,4 +27,5 @@
 - (IBAction)getStatus:(id)sender;
 - (IBAction)volumeChanged:(UISlider *)sender;
 
+- (void)dedReceiveNotification:(NSNotification *)aNotification;
 @end
