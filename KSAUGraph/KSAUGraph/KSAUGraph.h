@@ -10,6 +10,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioUnit/AudioUnit.h>
 #import "iPhoneCoreAudio.h"
+#import "KSAUGraphNode.h"
 @class KSAUGraphManager;
 
 // オーディオが割り込まれたときに呼ばれる通知
