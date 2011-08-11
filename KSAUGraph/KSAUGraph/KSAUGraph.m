@@ -221,7 +221,6 @@ static BOOL _willDelete = NO;
                           kAudioUnitScope_Output,
                           0,
                           &volume);
-    NSLog(@"Volume : %f", volume);
     return volume;
 }
 - (void)setVolume:(Float32)volume {
