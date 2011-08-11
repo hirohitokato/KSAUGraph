@@ -6,10 +6,9 @@
 //  Copyright 2011 KatokichiSoft. All rights reserved.
 //
 #import "KSAUGraph.h"
-#import "KSAUGraphNode.h"
 #import "ksauIntervalInfo.h"
 
-static NSString *version = @"KSAUGraph v1.0.0";
+static NSString *version = @"KSAUGraph v1.1.0";
 NSString *KSAUGraphVersion() {
 	return version;
 }
@@ -36,6 +35,7 @@ static void interruptionCallback(void *inClientData, UInt32 inInterruptionState)
 #pragma mark -
 @implementation KSAUGraphManager
 @synthesize delegate=delegate_;
+@synthesize channels=channels_;
 
 static id _instance = nil;
 static BOOL _willDelete = NO;
@@ -53,17 +53,17 @@ static BOOL _willDelete = NO;
     return self;
 }
 
-- (void)prepareWithChannels:(NSArray *)array {
+- (void)prepareChannel:(NSInteger)numChannels {
     // 8チャンネル以下であること
-    if ([array count] > 8) {
-        NSLog(@"Array count(%d) must be within 8.", [array count]);
+    if (numChannels<0 || numChannels > 8) {
+        NSLog(@"Number of channels(%d) must be up to 8.", numChannels);
         return;
     }
+    numChannels_ = numChannels;
     if (delegate_==nil) {
         NSLog(@"Delegate property must not be nil.");
         return;
     }
-    channels_ = [array retain];
 
     OSStatus err;
 
@@ -96,20 +96,20 @@ static BOOL _willDelete = NO;
     
     // インプットバスにコールバック関数を登録
     // 引数には配列の各要素を渡す
-    int inputCount = [array count];
-    for(int i = 0; i < inputCount; i++){
-        KSAUGraphNode *node = [array objectAtIndex:i];
-        node.manager = self;
+    channels_ = [[NSMutableArray alloc] initWithCapacity:numChannels];
+    for(int i = 0; i < numChannels; i++){
+        KSAUGraphNode *node = [[KSAUGraphNode alloc] init];
         node.channel = i;
         AURenderCallbackStruct callbackStruct;
         callbackStruct.inputProc = renderCallback;
-        callbackStruct.inputProcRefCon = node;      
+        callbackStruct.inputProcRefCon = node;
         // ミキサーの各バスにコールバック関数を設定
-        err = AUGraphSetNodeInputCallback(auGraph_, 
+        err = AUGraphSetNodeInputCallback(auGraph_,
                                           // ミキサーノードのi番目のバスナンバー
                                           multiChannelMixerNode, i,
                                           &callbackStruct);
         KSAUCheckError(err, "AUGraphSetNodeInputCallback");
+        [channels_ addObject:node];
     }
     
     AudioUnit remoteIOAudioUnit;
@@ -167,7 +167,7 @@ static BOOL _willDelete = NO;
     OSStatus ret;
     ret = AUGraphIsOpen(auGraph_, &isOpened);
     if (!isOpened) {
-        [self prepareWithChannels:[channels_ autorelease]];
+        [self prepareChannel:numChannels_];
     }
     ret = AUGraphIsInitialized(auGraph_, &isInitialized);
     if (!isInitialized) {
@@ -302,7 +302,6 @@ static OSStatus renderCallback(void*                       inRefCon,
                                AudioBufferList*            ioData
                                ){
     KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
-    KSAUGraphManager *manager = node.manager;
     
     AudioUnitSampleType *outL = ioData->mBuffers[0].mData;
     AudioUnitSampleType *outR = ioData->mBuffers[1].mData;
@@ -335,9 +334,9 @@ static OSStatus renderCallback(void*                       inRefCon,
             }
             // その次のトリガーフレームを取得
             UInt64 nextTriggerFrame;
-            [manager nextTriggerFrame:&nextTriggerFrame
-                              channel:&targetChannel
-                         currentFrame:targetFrame];
+            [_instance nextTriggerFrame:&nextTriggerFrame
+                                channel:&targetChannel
+                           currentFrame:targetFrame];
             node.nextTriggerFrame = targetFrame = nextTriggerFrame;
             node.nextChannel = targetChannel;
         } else if (targetFrame < node.cumulativeFrames) {

@@ -12,10 +12,10 @@
 #import "iPhoneCoreAudio.h"
 
 @class KSAUGraphManager;
+@class KSAUSound;
 
 @interface KSAUGraphNode : NSObject {
     // AUGraphにおけるパラメータ
-    KSAUGraphManager *manager_; // 接続先グラフ
     int channel_;               // 接続先のチャネル（バス）番号
 
     // 再生中のパラメータ
@@ -26,14 +26,14 @@
     UInt64 nextTriggerFrame_;   // 次の区切りとなる位置
     int nextChannel_;           // 次の区切りで再生するチャネル
 
-    // サウンドデータのパラメータ
-    UInt32 numberOfChannels_;           // サウンドファイルのチャンネル数
-    SInt64 totalFrames_;                // サウンドファイルの全フレーム数
-    AudioUnitSampleType **playBuffer_;  // サウンドデータ
+    // サウンドデータ
+    KSAUSound *sound_;
 }
 
-@property (assign, nonatomic)KSAUGraphManager* manager;
+// KSAUGraphの中での、自分のチャネル番号
 @property (assign, nonatomic)int channel;
+// サウンドデータ
+@property (retain, nonatomic)KSAUSound *sound;
 
 // 全体で再生開始したときの0を起点とする累積フレーム数
 @property (assign, nonatomic)UInt64 cumulativeFrames;
@@ -53,9 +53,6 @@
                    inNumberFrames:(UInt32)inNumberFrames
                           outLeft:(AudioUnitSampleType *)outL
                          outRight:(AudioUnitSampleType *)outR;
-
-// 指定したファイルで初期化（インプリ側の処理）
-- (id)initWithContentsOfURL:(NSURL*)url;
 
 // 内部値のリセット
 - (void)reset;

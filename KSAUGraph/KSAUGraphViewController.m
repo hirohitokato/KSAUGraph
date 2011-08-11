@@ -42,15 +42,17 @@
     [super viewDidLoad];
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     mgr.delegate = self;
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"analog_rest" ofType:@"caf"];
-	NSURL *fileURL = [NSURL fileURLWithPath:path];
-    KSAUGraphNode *node0 = [[[KSAUGraphNode alloc] initWithContentsOfURL:fileURL] autorelease];
-    path = [[NSBundle mainBundle] pathForResource:@"real_tock" ofType:@"caf"];
-	fileURL = [NSURL fileURLWithPath:path];
-    KSAUGraphNode *node1 = [[[KSAUGraphNode alloc] initWithContentsOfURL:fileURL] autorelease];
 
-    [mgr prepareWithChannels:[NSArray arrayWithObjects:node0, node1, nil]];
-
+    NSString *filenames[] = {@"analog_rest", @"real_tock"};
+    [mgr prepareChannel:2];
+    for (int i=0; i<mgr.channels.count; i++) {
+        NSString *path = [[NSBundle mainBundle] pathForResource:filenames[i] ofType:@"caf"];
+        NSURL *fileURL = [NSURL fileURLWithPath:path];
+        KSAUSound *sound = [KSAUSound soundWithContentsOfURL:fileURL];
+        KSAUGraphNode *node = [mgr.channels objectAtIndex:i];
+        node.sound = sound;
+    }
+    
     minValueLabel.text = [NSString stringWithFormat:@"%2.0f", intervalSlider.minimumValue];
     maxValueLabel.text = [NSString stringWithFormat:@"%2.0f", intervalSlider.maximumValue];
     currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
@@ -62,7 +64,7 @@
 	OSStatus result = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
 	if (result) printf("Error setting audio session category! %d\n", (int)result);
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    [center addObserver:self selector:@selector(dedReceiveNotification:) name:kKSAUAudioDidBeginInterruptionNotification object:nil];
+    [center addObserver:self selector:@selector(didReceiveNotification:) name:kKSAUAudioDidBeginInterruptionNotification object:nil];
 }
 
 - (void)viewDidUnload

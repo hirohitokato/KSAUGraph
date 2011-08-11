@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A7E9D7513DFA0710006FCFA /* KSAUGraphNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E9D7413DFA0710006FCFA /* KSAUGraphNode.m */; };
+		1ACAEC8E13F3B86B00811D0A /* KSAUSound.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACAEC8D13F3B86B00811D0A /* KSAUSound.m */; };
 		915454AC13E12E0B00603C58 /* analog_rest.caf in Resources */ = {isa = PBXBuildFile; fileRef = 915454AB13E12E0B00603C58 /* analog_rest.caf */; };
 		915454AE13E1360F00603C58 /* real_tock.caf in Resources */ = {isa = PBXBuildFile; fileRef = 915454AD13E1360F00603C58 /* real_tock.caf */; };
 		91C5C78F13DEF908002004A8 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91C5C78E13DEF908002004A8 /* UIKit.framework */; };
@@ -28,6 +29,8 @@
 /* Begin PBXFileReference section */
 		1A7E9D7313DFA0710006FCFA /* KSAUGraphNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KSAUGraphNode.h; path = KSAUGraph/KSAUGraphNode.h; sourceTree = "<group>"; };
 		1A7E9D7413DFA0710006FCFA /* KSAUGraphNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KSAUGraphNode.m; path = KSAUGraph/KSAUGraphNode.m; sourceTree = "<group>"; };
+		1ACAEC8313F375F500811D0A /* KSAUSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KSAUSound.h; path = KSAUGraph/KSAUSound.h; sourceTree = "<group>"; };
+		1ACAEC8D13F3B86B00811D0A /* KSAUSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KSAUSound.m; path = KSAUGraph/KSAUSound.m; sourceTree = "<group>"; };
 		915454AB13E12E0B00603C58 /* analog_rest.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = analog_rest.caf; sourceTree = "<group>"; };
 		915454AD13E1360F00603C58 /* real_tock.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = real_tock.caf; sourceTree = "<group>"; };
 		91C5C78A13DEF908002004A8 /* KSAUGraph.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KSAUGraph.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,7 +47,7 @@
 		91C5C7A313DEF908002004A8 /* KSAUGraphViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KSAUGraphViewController.h; sourceTree = "<group>"; };
 		91C5C7A413DEF908002004A8 /* KSAUGraphViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KSAUGraphViewController.m; sourceTree = "<group>"; };
 		91C5C7A713DEF908002004A8 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/KSAUGraphViewController.xib; sourceTree = "<group>"; };
-		91C5C7AE13DEF9EE002004A8 /* KSAUGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; name = KSAUGraph.h; path = KSAUGraph/KSAUGraph.h; sourceTree = "<group>"; };
+		91C5C7AE13DEF9EE002004A8 /* KSAUGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KSAUGraph.h; path = KSAUGraph/KSAUGraph.h; sourceTree = "<group>"; };
 		91C5C7AF13DEF9EE002004A8 /* KSAUGraph.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KSAUGraph.m; path = KSAUGraph/KSAUGraph.m; sourceTree = "<group>"; };
 		91C5C7B513DEFD00002004A8 /* iPhoneCoreAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = iPhoneCoreAudio.h; path = KSAUGraph/iPhoneCoreAudio.h; sourceTree = "<group>"; };
 		91C5C7B613DEFD00002004A8 /* iPhoneCoreAudio.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = iPhoneCoreAudio.m; path = KSAUGraph/iPhoneCoreAudio.m; sourceTree = "<group>"; };
@@ -135,6 +138,8 @@
 				91C5C7B613DEFD00002004A8 /* iPhoneCoreAudio.m */,
 				91CB95F813E44CF3008B137D /* ksauIntervalInfo.h */,
 				91CB95F913E44CF3008B137D /* ksauIntervalInfo.m */,
+				1ACAEC8313F375F500811D0A /* KSAUSound.h */,
+				1ACAEC8D13F3B86B00811D0A /* KSAUSound.m */,
 			);
 			name = lib;
 			sourceTree = "<group>";
@@ -211,6 +216,7 @@
 				91C5C7B713DEFD00002004A8 /* iPhoneCoreAudio.m in Sources */,
 				1A7E9D7513DFA0710006FCFA /* KSAUGraphNode.m in Sources */,
 				91CB95FA13E44CF3008B137D /* ksauIntervalInfo.m in Sources */,
+				1ACAEC8E13F3B86B00811D0A /* KSAUSound.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
