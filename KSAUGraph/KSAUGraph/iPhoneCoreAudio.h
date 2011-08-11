@@ -15,6 +15,7 @@ extern AudioStreamBasicDescription CanonicalASBD(Float64 sampleRate,
                                                  UInt32 channel);
 extern void AudioSessionSetFrameBufferSize(Float64 sampleRate,
                                            int frameBufferSize);
+extern OSStatus KSAudioSessionSetCategory(UInt32 category);
 
 extern void printASBD(AudioStreamBasicDescription audioFormat);
 

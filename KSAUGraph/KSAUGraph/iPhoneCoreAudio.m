@@ -58,6 +58,13 @@ void AudioSessionSetFrameBufferSize(Float64 sampleRate,
     AudioSessionSetActive(TRUE);
 }
 
+OSStatus KSAudioSessionSetCategory(UInt32 category) {
+	OSStatus result = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory,
+                                              sizeof(category), &category);
+	KSAUCheckError(result, "Error setting audio session category!\n");
+    return result;
+}
+
 void printASBD(AudioStreamBasicDescription audioFormat){
     UInt32 mFormatFlags = audioFormat.mFormatFlags;
     NSMutableArray *flags = [NSMutableArray array];
