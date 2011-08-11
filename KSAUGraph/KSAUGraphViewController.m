@@ -68,10 +68,9 @@
     volumeSlider.value = mgr.volume;
     [self getStatus:nil];
 
+    KSAudioSessionSetCategory(kAudioSessionCategory_MediaPlayback);
+
     // 割り込み用コールバックの設定
-	UInt32 category = kAudioSessionCategory_MediaPlayback;
-	OSStatus result = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category);
-	if (result) printf("Error setting audio session category! %d\n", (int)result);
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(didReceiveNotification:) name:kKSAUAudioDidBeginInterruptionNotification object:nil];
 }
@@ -152,6 +151,7 @@
 - (IBAction)volumeChanged:(UISlider *)sender {
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     [mgr setVolume:[sender value]];
+    NSLog(@"Volume : %f", mgr.volume);
 }
 
 - (void)setSound:(NSUInteger)type {
