@@ -23,6 +23,7 @@
     [isOpenedLabel release];
     [returnCodeLabel release];
     [volumeSlider release];
+    [soundType release];
     [super dealloc];
 }
 
@@ -42,17 +43,25 @@
     [super viewDidLoad];
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     mgr.delegate = self;
-
-    NSString *filenames[] = {@"analog_rest", @"real_tock"};
     [mgr prepareChannel:2];
-    for (int i=0; i<mgr.channels.count; i++) {
-        NSString *path = [[NSBundle mainBundle] pathForResource:filenames[i] ofType:@"caf"];
+
+    soundA = [[NSMutableArray alloc] initWithCapacity:2];
+    soundB = [[NSMutableArray alloc] initWithCapacity:2];
+    NSString *filenamesA[] = {@"analog_rest", @"real_tock"};
+    NSString *filenamesB[] = {@"click_tick_high", @"click_tock_low"};
+    for (int i=0; i<2; i++) {
+        NSString *path = [[NSBundle mainBundle] pathForResource:filenamesA[i] ofType:@"caf"];
         NSURL *fileURL = [NSURL fileURLWithPath:path];
         KSAUSound *sound = [KSAUSound soundWithContentsOfURL:fileURL];
-        KSAUGraphNode *node = [mgr.channels objectAtIndex:i];
-        node.sound = sound;
+        [soundA addObject:sound];
+        path = [[NSBundle mainBundle] pathForResource:filenamesB[i] ofType:@"caf"];
+        fileURL = [NSURL fileURLWithPath:path];
+        sound = [KSAUSound soundWithContentsOfURL:fileURL];
+        [soundB addObject:sound];
     }
-    
+    soundType.selectedSegmentIndex = 0;
+    [self selectedSound:soundType];
+
     minValueLabel.text = [NSString stringWithFormat:@"%2.0f", intervalSlider.minimumValue];
     maxValueLabel.text = [NSString stringWithFormat:@"%2.0f", intervalSlider.maximumValue];
     currentValueLabel.text = [NSString stringWithFormat:@"%2.2f", intervalSlider.value];
@@ -69,6 +78,9 @@
 
 - (void)viewDidUnload
 {
+    [soundA release];
+    [soundB release];
+
     [maxValueLabel release];
     maxValueLabel = nil;
     [minValueLabel release];
@@ -87,6 +99,8 @@
     returnCodeLabel = nil;
     [volumeSlider release];
     volumeSlider = nil;
+    [soundType release];
+    soundType = nil;
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
@@ -107,6 +121,8 @@
 
     return info;
 }
+
+#pragma mark - Actions
 - (IBAction)play:(id)sender {
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     NSLog(@"Start playing.");
@@ -136,6 +152,23 @@
 - (IBAction)volumeChanged:(UISlider *)sender {
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     [mgr setVolume:[sender value]];
+}
+
+- (void)setSound:(NSUInteger)type {
+    NSMutableArray *array;
+    if (type == 0) {
+        array = soundA;
+    } else {
+        array = soundB;
+    }
+    KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+    for (int i=0; i<mgr.channels.count; i++) {
+        KSAUGraphNode *node = [mgr.channels objectAtIndex:i];
+        node.sound = [array objectAtIndex:i];
+    }
+}
+- (IBAction)selectedSound:(UISegmentedControl *)sender {
+    [self setSound:sender.selectedSegmentIndex];
 }
 
 - (void)didReceiveNotification:(NSNotification *)aNotification {

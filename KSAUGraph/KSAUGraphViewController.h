@@ -10,7 +10,9 @@
 #import "KSAUGraph.h"
 
 @interface KSAUGraphViewController : UIViewController <KSAUGraphManagerDelegate>{
-    
+    NSMutableArray *soundA;
+    NSMutableArray *soundB;
+
     IBOutlet UILabel *minValueLabel;
     IBOutlet UILabel *maxValueLabel;
     IBOutlet UILabel *currentValueLabel;
@@ -20,12 +22,14 @@
     IBOutlet UILabel *isOpenedLabel;
     IBOutlet UILabel *returnCodeLabel;
     IBOutlet UISlider *volumeSlider;
+    IBOutlet UISegmentedControl *soundType;
 }
 - (IBAction)play:(id)sender;
 - (IBAction)stop:(id)sender;
 - (IBAction)intervalChanged:(id)sender;
 - (IBAction)getStatus:(id)sender;
 - (IBAction)volumeChanged:(UISlider *)sender;
+- (IBAction)selectedSound:(id)sender;
 
 - (void)didReceiveNotification:(NSNotification *)aNotification;
 @end
