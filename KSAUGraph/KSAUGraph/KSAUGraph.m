@@ -60,10 +60,6 @@ static BOOL _willDelete = NO;
         return;
     }
     numChannels_ = numChannels;
-    if (delegate_==nil) {
-        NSLog(@"Delegate property must not be nil.");
-        return;
-    }
 
     OSStatus err;
 
@@ -188,6 +184,10 @@ static BOOL _willDelete = NO;
 
 #pragma mark -
 -(void)start {
+    if (delegate_==nil) {
+        NSLog(@"Delegate property must not be nil.");
+        return;
+    }
     if(!isPlaying_){
         for (KSAUGraphNode *node in channels_) {
             [node reset];
