@@ -199,7 +199,7 @@ static BOOL _willDelete = NO;
         OSStatus err = AUGraphStart(auGraph_);
         KSAUCheckError(err, "AUGraphStart(auGraph_)");
     } else {
-        NSLog(@"Warning: play method is called though now is playing.");
+        // NSLog(@"Warning: play method is called though now is playing.");
     }
     isPlaying_ = YES;
 }
@@ -209,9 +209,13 @@ static BOOL _willDelete = NO;
         AUGraphStop(auGraph_);
         [triggers_ removeAllObjects];
     } else {
-        NSLog(@"Warning: stop method is called though now is not playing.");
+        // NSLog(@"Warning: stop method is called though now is not playing.");
     }
     isPlaying_ = NO;
+}
+
+- (BOOL)isRunning {
+    return  isPlaying_;
 }
 
 - (Float32)volume {
