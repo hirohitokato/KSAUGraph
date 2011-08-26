@@ -47,7 +47,7 @@ void AudioSessionSetFrameBufferSize(Float64 sampleRate,
     OSStatus err = AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration,
                                            size, &duration);
     KSAUCheckError(err, "error setting PreferredHardwareIOBufferDuration");
-    if (1) { // debug
+    if (0) { // debug
         Float32 newDuration;
         size = sizeof(Float32);
         AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration,
