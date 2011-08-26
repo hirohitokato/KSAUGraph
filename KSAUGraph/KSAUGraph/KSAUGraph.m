@@ -60,10 +60,6 @@ static BOOL _willDelete = NO;
         return;
     }
     numChannels_ = numChannels;
-    if (delegate_==nil) {
-        NSLog(@"Delegate property must not be nil.");
-        return;
-    }
 
     OSStatus err;
 
@@ -164,16 +160,15 @@ static BOOL _willDelete = NO;
 
 - (void)recoverIfNeeded {
     Boolean isOpened, isInitialized, isRunning;
-    OSStatus ret;
-    ret = AUGraphIsOpen(auGraph_, &isOpened);
+    AUGraphIsOpen(auGraph_, &isOpened);
     if (!isOpened) {
         [self prepareChannel:numChannels_];
     }
-    ret = AUGraphIsInitialized(auGraph_, &isInitialized);
+    AUGraphIsInitialized(auGraph_, &isInitialized);
     if (!isInitialized) {
         AUGraphInitialize(auGraph_);
     }
-    ret = AUGraphIsRunning(auGraph_, &isRunning);
+    AUGraphIsRunning(auGraph_, &isRunning);
     if (!isRunning) {
         [self stop];
     }
@@ -188,6 +183,10 @@ static BOOL _willDelete = NO;
 
 #pragma mark -
 -(void)start {
+    if (delegate_==nil) {
+        NSLog(@"Delegate property must not be nil.");
+        return;
+    }
     if(!isPlaying_){
         for (KSAUGraphNode *node in channels_) {
             [node reset];
@@ -199,7 +198,7 @@ static BOOL _willDelete = NO;
         OSStatus err = AUGraphStart(auGraph_);
         KSAUCheckError(err, "AUGraphStart(auGraph_)");
     } else {
-        NSLog(@"Warning: play method is called though now is playing.");
+        // NSLog(@"Warning: play method is called though now is playing.");
     }
     isPlaying_ = YES;
 }
@@ -209,9 +208,13 @@ static BOOL _willDelete = NO;
         AUGraphStop(auGraph_);
         [triggers_ removeAllObjects];
     } else {
-        NSLog(@"Warning: stop method is called though now is not playing.");
+        // NSLog(@"Warning: stop method is called though now is not playing.");
     }
     isPlaying_ = NO;
+}
+
+- (BOOL)isRunning {
+    return  isPlaying_;
 }
 
 - (Float32)volume {
@@ -354,12 +357,12 @@ static void interruptionCallback(void *inClientData, UInt32 inInterruptionState)
     if (inInterruptionState == kAudioSessionBeginInterruption) {
         NSLog(@"Begin interruption");
         // サウンド停止と、停止メッセージの受信
-        [mgr stop];
+        //[mgr stop];
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center postNotificationName:kKSAUAudioDidBeginInterruptionNotification object:mgr];
     } else {
         NSLog(@"End interruption");
-        [mgr start];
+        //[mgr start];
         AudioSessionSetActive(YES);
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center postNotificationName:kKSAUAudioDidEndInterruptionNotification object:mgr];

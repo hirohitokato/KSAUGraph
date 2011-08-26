@@ -41,8 +41,9 @@
 // 指定した個数のチャネルを作成する
 - (void)prepareChannel:(NSInteger)numChannels;
 
--(void)start;   // 動作開始
--(void)stop;    // 動作停止
+- (void)start;   // 動作開始
+- (void)stop;    // 動作停止
+- (BOOL)isRunning;  // 動作中かどうか
 
 - (void)setVolume:(Float32)volume;  // 全体のボリュームを設定(0.0〜1.0)
 - (Float32)volume;                  // 全体のボリュームを取得(0.0〜1.0)
