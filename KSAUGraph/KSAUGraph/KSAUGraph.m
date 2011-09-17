@@ -13,14 +13,20 @@ NSString *KSAUGraphVersion() {
 	return version;
 }
 
+// オーディオ再生の開始通知を伝えるために使うフラグ
+static BOOL requiredDidBeginPlayingNotification_ = NO;
+
 @interface KSAUGraphManager ()
 #pragma mark Private methods
 // オーディオリソースの解放
 - (void)unload;
+// オーディオ再生の開始通知
+- (void)sendNotification:(NSNumber *)startTime;
 // 次のトリガーフレームを取得
 - (void)nextTriggerFrame:(UInt64 *)nextFrame
                  channel:(int*)nextChannel
-            currentFrame:(UInt64)currentFrame;
+            currentFrame:(UInt64)currentFrame
+               timeStamp:(const AudioTimeStamp *)inTimeStamp;
 
 static OSStatus renderCallback(void*                       inRefCon,
                                AudioUnitRenderActionFlags* ioActionFlags,
@@ -181,6 +187,14 @@ static BOOL _willDelete = NO;
     return ((ret1<<2) | (ret2<<1) | (ret3));
 }
 
+- (void)sendNotification:(NSNumber *)startTime {
+    NSDictionary *info = [NSDictionary dictionaryWithObject:[startTime autorelease]
+                                                     forKey:kKSAUAudioKeyStartTime];
+
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center postNotificationName:kKSAUAudioDidBeginPlayingNotification object:nil userInfo:info];
+}
+
 #pragma mark -
 -(void)start {
     if (delegate_==nil) {
@@ -195,6 +209,7 @@ static BOOL _willDelete = NO;
         ksauIntervalInfo *i = [[[ksauIntervalInfo alloc] init] autorelease];
         [triggers_ addObject:i];
 
+        requiredDidBeginPlayingNotification_ = YES;
         OSStatus err = AUGraphStart(auGraph_);
         KSAUCheckError(err, "AUGraphStart(auGraph_)");
     } else {
@@ -205,8 +220,13 @@ static BOOL _willDelete = NO;
 
 -(void)stop {
     if(isPlaying_) {
+        requiredDidBeginPlayingNotification_ = NO;
         AUGraphStop(auGraph_);
         [triggers_ removeAllObjects];
+
+        // 終了通知
+        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+        [center postNotificationName:kKSAUAudioDidEndPlayingNotification object:nil];
     } else {
         // NSLog(@"Warning: stop method is called though now is not playing.");
     }
@@ -303,6 +323,17 @@ static OSStatus renderCallback(void*                       inRefCon,
                                UInt32                      inNumberFrames,
                                AudioBufferList*            ioData
                                ){
+    // 再生開始の1回だけ処理する
+    if (requiredDidBeginPlayingNotification_) {
+        requiredDidBeginPlayingNotification_ = NO;
+        // サウンド再生が始まる予定の時刻情報を渡す
+        NSNumber *startTime = [[NSNumber alloc] initWithUnsignedLongLong:inTimeStamp->mHostTime];
+        KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
+        [mgr performSelectorOnMainThread:@selector(sendNotification:)
+                              withObject:startTime
+                           waitUntilDone:NO];
+    }
+
     KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
     
     AudioUnitSampleType *outL = ioData->mBuffers[0].mData;
@@ -338,7 +369,8 @@ static OSStatus renderCallback(void*                       inRefCon,
             UInt64 nextTriggerFrame;
             [_instance nextTriggerFrame:&nextTriggerFrame
                                 channel:&targetChannel
-                           currentFrame:targetFrame];
+                           currentFrame:targetFrame
+                              timeStamp:inTimeStamp];
             node.nextTriggerFrame = targetFrame = nextTriggerFrame;
             node.nextChannel = targetChannel;
         } else if (targetFrame < node.cumulativeFrames) {
@@ -371,7 +403,8 @@ static void interruptionCallback(void *inClientData, UInt32 inInterruptionState)
 
 - (void)nextTriggerFrame:(UInt64 *)nextFrame
                  channel:(int*)nextChannel
-            currentFrame:(UInt64)currentFrame {
+            currentFrame:(UInt64)currentFrame
+               timeStamp:(const AudioTimeStamp *)inTimeStamp {
     
     // 現在の情報と、取得できるなら次の情報を取得
     ksauIntervalInfo *now=nil, *next=nil;

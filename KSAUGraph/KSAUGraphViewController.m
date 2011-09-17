@@ -73,6 +73,8 @@
     // 割り込み用コールバックの設定
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(didReceiveNotification:) name:kKSAUAudioDidBeginInterruptionNotification object:nil];
+    [center addObserver:self selector:@selector(didReceiveNotification:) name:kKSAUAudioDidBeginPlayingNotification object:nil];
+    [center addObserver:self selector:@selector(didReceiveNotification:) name:kKSAUAudioDidEndPlayingNotification object:nil];
 }
 
 - (void)viewDidUnload
@@ -172,7 +174,7 @@
 }
 
 - (void)didReceiveNotification:(NSNotification *)aNotification {
-    NSLog(@"Receive a notification[%@]", [aNotification name]);
+    NSLog(@"Receive a notification[%@]", aNotification);
     [self getStatus:nil];
 }
 @end

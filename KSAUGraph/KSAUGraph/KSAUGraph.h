@@ -55,6 +55,12 @@
 - (int)isRunning:(Boolean *)isRunning isInitialized:(Boolean *)isInitialized isOpened:(Boolean *)isOpened;
 @end
 
+#pragma mark - KSAUGraphが送信する通知
+// オーディオ再生が始まった/終わったときに呼ばれる通知(チャネルがいくつあっても1回だけ)
+#define kKSAUAudioDidBeginPlayingNotification @"KSAUAudioDidBeginPlaying"
+  #define kKSAUAudioKeyStartTime @"start time" // 再生が始まる時刻(mach_absolute_time相当。未来になり得るので注意)
+#define kKSAUAudioDidEndPlayingNotification @"KSAUAudioDidEndPlaying"
+
 // オーディオが割り込まれたときに呼ばれる通知
 #define kKSAUAudioDidBeginInterruptionNotification @"KSAUAudioDidBeginInterruption"
 #define kKSAUAudioDidEndInterruptionNotification @"KSAUAudioDidEndInterruption"
@@ -68,6 +74,7 @@ typedef struct {
 @protocol KSAUGraphManagerDelegate<NSObject>
 @required
 // 次の再生までのインターバルを秒で返すためのデリゲートメソッド
+// 引数timeStampは内部コールバックが呼ばれたときの情報（なので時間が少し違う）
 - (KSAUGraphNextTriggerInfo)nextTriggerInfo:(KSAUGraphManager *)audioManager;
 @end
 
