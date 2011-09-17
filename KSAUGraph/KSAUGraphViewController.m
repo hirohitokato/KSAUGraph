@@ -8,7 +8,6 @@
 
 #import "KSAUGraphViewController.h"
 #import "KSAUGraph.h"
-#import "KSAUGraphNode.h"
 
 @implementation KSAUGraphViewController
 
