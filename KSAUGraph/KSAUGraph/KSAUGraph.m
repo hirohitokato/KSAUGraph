@@ -188,9 +188,8 @@ static BOOL _willDelete = NO;
 }
 
 - (void)sendNotification:(NSNumber *)startTime {
-    NSDictionary *info = [NSDictionary dictionaryWithObject:[startTime autorelease]
+    NSDictionary *info = [NSDictionary dictionaryWithObject:startTime
                                                      forKey:kKSAUAudioKeyStartTime];
-
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center postNotificationName:kKSAUAudioDidBeginPlayingNotification object:nil userInfo:info];
 }
@@ -332,6 +331,7 @@ static OSStatus renderCallback(void*                       inRefCon,
         [mgr performSelectorOnMainThread:@selector(sendNotification:)
                               withObject:startTime
                            waitUntilDone:NO];
+        [startTime release];
     }
 
     KSAUGraphNode *node = (KSAUGraphNode *)inRefCon;
