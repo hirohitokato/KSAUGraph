@@ -8,16 +8,35 @@
 
 #import "KSAUSound.h"
 
-@interface KSAUSound ()
--(void)prepareExtAudio:(NSURL*)fileURL;
-@end
-
 @implementation KSAUSound
 @synthesize data=playBuffer_;
 @synthesize totalFrames=totalFrames_, numberOfChannels=numberOfChannels_;
 
+- (id)init {
+    self = [super init];
+    if (self) {
+        // Initialization code here.
+    }
+    return self;
+}
+- (void)dealloc {
+    for(int i = 0; i < numberOfChannels_; i++){
+        free(playBuffer_[i]);
+    }
+    if(playBuffer_)free(playBuffer_);
+    [super dealloc];
+}
+@end
+
+#pragma mark -
+@interface KSAUSoundFile ()
+-(void)prepareExtAudio:(NSURL*)fileURL;
+@end
+
+@implementation KSAUSoundFile
+
 +(id)soundWithContentsOfURL:(NSURL*)url {
-    return [[[KSAUSound alloc] initWithContentsOfURL:url] autorelease];
+    return [[[KSAUSoundFile alloc] initWithContentsOfURL:url] autorelease];
 }
 
 -(id)initWithContentsOfURL:(NSURL*)url {
@@ -29,10 +48,6 @@
 }
 
 - (void)dealloc {
-    for(int i = 0; i < numberOfChannels_; i++){
-        free(playBuffer_[i]);
-    }
-    if(playBuffer_)free(playBuffer_);
     [super dealloc];
 }
 
@@ -101,4 +116,24 @@
     free(audioBufferList);
 }
 
+@end
+
+#pragma mark -
+@implementation KSAUSoundMute
++ (id)muteSound {
+    return [[[KSAUSoundMute alloc] init] autorelease];
+}
+- (id)init {
+    self = [super init];
+    if (self) {
+        // Initialization code here.
+        numberOfChannels_ = 2;
+        totalFrames_ = -1;
+        playBuffer_ = NULL;
+    }
+    return self;
+}
+- (void)dealloc {
+    [super dealloc];
+}
 @end

@@ -11,6 +11,7 @@
 #import <AudioUnit/AudioUnit.h>
 #import "iPhoneCoreAudio.h"
 
+#pragma mark - Abstract class
 @interface KSAUSound : NSObject {
     AudioUnitSampleType **playBuffer_;  // サウンドデータ
     UInt32 numberOfChannels_;           // サウンドファイルのチャンネル数
@@ -19,7 +20,18 @@
 @property (nonatomic, readonly, assign)AudioUnitSampleType **data;  // サウンドデータ
 @property (nonatomic, readonly, assign)UInt32 numberOfChannels; // サウンドファイルのチャンネル数
 @property (nonatomic, readonly, assign)SInt64 totalFrames;      // サウンドファイルの全フレーム数
+@end
+
+#pragma mark - Implementation class
+@interface KSAUSoundFile : KSAUSound {
+}
 
 +(id)soundWithContentsOfURL:(NSURL*)url;
 -(id)initWithContentsOfURL:(NSURL*)url;
+@end
+
+@interface KSAUSoundMute : KSAUSound {
+}
+
++(id)muteSound;
 @end

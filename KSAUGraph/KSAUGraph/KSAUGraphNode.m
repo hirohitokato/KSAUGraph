@@ -72,6 +72,10 @@
             if (currentPos >= totalFrames) {
                 currentPos = 0;
                 isPlaying_ = NO;
+                if (totalFrames <= 0) {
+                    // データの全フレーム数が0だった場合はbufferがNULLの可能性が高いため。
+                    continue;
+                }
             }
             // データの埋め込み
             if (numberOfChannels == 2) { //ステレオの場合
@@ -82,7 +86,7 @@
                 *outR++ = buffer[0][currentPos];
             }
         } else {
-            //再生するサンプルが無いので0で埋める
+            // (これ以上)再生するサンプルが無いので0で埋める
             *outL++ = *outR++ = 0;
         }
     }    
