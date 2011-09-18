@@ -12,6 +12,7 @@
 @interface KSAUGraphViewController : UIViewController <KSAUGraphManagerDelegate>{
     NSMutableArray *soundA;
     NSMutableArray *soundB;
+    NSMutableArray *soundC;
 
     IBOutlet UILabel *minValueLabel;
     IBOutlet UILabel *maxValueLabel;

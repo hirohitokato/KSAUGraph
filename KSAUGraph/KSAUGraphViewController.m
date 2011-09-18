@@ -46,17 +46,23 @@
 
     soundA = [[NSMutableArray alloc] initWithCapacity:2];
     soundB = [[NSMutableArray alloc] initWithCapacity:2];
+    soundC = [[NSMutableArray alloc] initWithCapacity:2];
     NSString *filenamesA[] = {@"analog_rest", @"real_tock"};
     NSString *filenamesB[] = {@"click_tick_high", @"click_tock_low"};
     for (int i=0; i<2; i++) {
+        // sound A
         NSString *path = [[NSBundle mainBundle] pathForResource:filenamesA[i] ofType:@"caf"];
         NSURL *fileURL = [NSURL fileURLWithPath:path];
-        KSAUSound *sound = [KSAUSound soundWithContentsOfURL:fileURL];
+        KSAUSound *sound = [KSAUSoundFile soundWithContentsOfURL:fileURL];
         [soundA addObject:sound];
+        // sound B
         path = [[NSBundle mainBundle] pathForResource:filenamesB[i] ofType:@"caf"];
         fileURL = [NSURL fileURLWithPath:path];
-        sound = [KSAUSound soundWithContentsOfURL:fileURL];
+        sound = [KSAUSoundFile soundWithContentsOfURL:fileURL];
         [soundB addObject:sound];
+        // sound C
+        sound = [KSAUSoundMute muteSound];
+        [soundC addObject:sound];
     }
     soundType.selectedSegmentIndex = 0;
     [self selectedSound:soundType];
@@ -157,10 +163,18 @@
 
 - (void)setSound:(NSUInteger)type {
     NSMutableArray *array;
-    if (type == 0) {
-        array = soundA;
-    } else {
-        array = soundB;
+    switch (type) {
+        case 0:
+            array = soundA;
+            break;
+        case 1:
+            array = soundB;
+            break;
+        case 2:
+            array = soundC;
+            break;
+        default:
+            break;
     }
     KSAUGraphManager *mgr = [KSAUGraphManager sharedInstance];
     for (int i=0; i<mgr.channels.count; i++) {
