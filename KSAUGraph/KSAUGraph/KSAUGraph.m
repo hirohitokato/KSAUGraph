@@ -69,7 +69,7 @@ static BOOL _willDelete = NO;
 
     OSStatus err;
 
-    AudioSessionSetFrameBufferSize(44100.0, 1024);
+    AudioSessionSetFrameBufferSize(KSAUGRAPH_DESIRED_SAMPLING_RATE, 1024);
     //AUGraphをインスタンス化
     err = NewAUGraph(&auGraph_); KSAUCheckError(err, "NewAUGraph");
 	err = AUGraphOpen(auGraph_); KSAUCheckError(err, "AUGraphOpen");
@@ -124,7 +124,7 @@ static BOOL _willDelete = NO;
     KSAUCheckError(err, "AUGraphNodeInfo(&multiChannelMixerAudioUnit_)");
 
     //それぞれのAudio UnitにASBD(Audio Unit正準形)を設定する
-	AudioStreamBasicDescription audioFormat = AUCanonicalASBD(44100.0, 2);
+	AudioStreamBasicDescription audioFormat = AUCanonicalASBD(KSAUGRAPH_DESIRED_SAMPLING_RATE, 2);
     err = AudioUnitSetProperty(remoteIOAudioUnit,
                                kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
                                &audioFormat, sizeof(audioFormat));
@@ -430,7 +430,7 @@ static void interruptionCallback(void *inClientData, UInt32 inInterruptionState)
         if (delegate_) {
             KSAUGraphNextTriggerInfo info = [delegate_ nextTriggerInfo:self];
             next = [[ksauIntervalInfo alloc] init];
-            next.nextTriggerFrame = info.interval*44100 + currentFrame;
+            next.nextTriggerFrame = info.interval*KSAUGRAPH_DESIRED_SAMPLING_RATE + currentFrame;
             next.channel = info.channel;
             [triggers_ addObject:next];
             [next release];

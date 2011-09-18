@@ -15,6 +15,9 @@
 
 #import "iPhoneCoreAudio.h"
 
+#pragma mark - KSAUGraphの設定
+#define KSAUGRAPH_DESIRED_SAMPLING_RATE 44100.0f
+#pragma mark -
 @class KSAUGraphNode;
 @protocol KSAUGraphManagerDelegate;
 
