@@ -162,7 +162,7 @@
 }
 
 - (void)setSound:(NSUInteger)type {
-    NSMutableArray *array;
+    NSMutableArray *array = nil;
     switch (type) {
         case 0:
             array = soundA;
